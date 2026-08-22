@@ -1,0 +1,11 @@
+/* Тексты системных запросов, en.
+
+   Сказать ЗАЧЕМ и что будет при отказе. Системный диалог — единственное
+   место, где человек решает, доверять ли приложению, и «нужен доступ
+   к камере» этому решению не помогает. */
+
+"CFBundleDisplayName" = "qiymət";
+"CFBundleName" = "qiymət";
+
+"NSLocationWhenInUseUsageDescription" = "To show nearby stores first in the list. Precise location is not needed — a neighbourhood is enough. If you decline, you will pick your district manually.";
+"NSCameraUsageDescription" = "To scan the barcode on the shelf and the QR code on a receipt. The image is not stored on the phone and is not sent anywhere.";

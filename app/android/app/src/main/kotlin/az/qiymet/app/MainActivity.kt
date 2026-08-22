@@ -1,0 +1,5 @@
+package az.qiymet.app
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()

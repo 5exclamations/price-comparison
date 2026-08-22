@@ -1,0 +1,282 @@
+{
+  "@@locale": "az",
+  "appTitle": "qiymət",
+  "tabSearch": "Axtarış",
+  "tabDeals": "Endirimlər",
+  "tabList": "Siyahı",
+  "tabSettings": "Tənzimləmələr",
+  "searchTitle": "Axtarış",
+  "searchHint": "Məhsul adı və ya barkod",
+  "searchPrompt": "Məhsulun adını yazın və ya barkodu daxil edin",
+  "searchEmpty": "Heç nə tapılmadı",
+  "chainsCount": "{count, plural, one{{count} şəbəkədə} other{{count} şəbəkədə}}",
+  "@chainsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "needsStoreSelection": "Qiyməti görmək üçün mağaza seçin",
+  "chooseStore": "Mağaza seçin",
+  "productTitle": "Məhsul",
+  "productNotFound": "Məhsul tapılmadı",
+  "observedAt": "{time} tarixində yoxlanılıb",
+  "@observedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dealsTitle": "Endirimlər",
+  "dealsEmpty": "Hələlik endirim yoxdur",
+  "realDiscount": "Bazardan {percent}% ucuz",
+  "@realDiscount": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "inflatedWarning": "Endirim şişirdilib",
+  "listTitle": "Siyahı",
+  "listEmpty": "Siyahı boşdur. Məhsul əlavə edin — biz qiyməti izləyəcəyik",
+  "settingsTitle": "Tənzimləmələr",
+  "settingsLanguage": "Dil",
+  "settingsTheme": "Görünüş",
+  "themeSystem": "Sistemə uyğun",
+  "themeLight": "İşıqlı",
+  "themeDark": "Qaranlıq",
+  "errorGeneric": "Nəsə alınmadı. Bir azdan yenidən cəhd edin",
+  "storePickerTitle": "Hara gedirsiniz?",
+  "storePickerWhy": "Qiymətlər təkcə şəbəkələr arasında yox, eyni şəbəkənin mağazaları arasında da fərqlənir. Sizə yad qiymət göstərməmək üçün öz mağazalarınızı seçin.",
+  "useMyLocation": "Yerimi təyin et",
+  "locationWhyTitle": "Yeriniz nə üçün lazımdır",
+  "locationWhyBody": "Yaxın mağazaları göstərmək üçün. Koordinatlar cihazdan kənara çıxmır və saxlanılmır. İcazə verməsəniz, siyahıdan özünüz seçə bilərsiniz.",
+  "locationAllow": "İcazə ver",
+  "locationDenied": "İcazə verilmədi. Aşağıdan rayonu və mağazanı özünüz seçin.",
+  "locationDeniedForever": "İcazə həmişəlik bağlanıb. Tənzimləmələrdən aça bilərsiniz.",
+  "locationServiceOff": "Cihazda yer təyini söndürülüb. Onu açın və ya mağazanı özünüz seçin.",
+  "locationFailed": "Yeri təyin etmək alınmadı. Mağazanı siyahıdan seçin.",
+  "locationFound": "Yer təyin edildi",
+  "openSettings": "Tənzimləmələri aç",
+  "district": "Rayon",
+  "allDistricts": "Hamısı",
+  "samePriceEverywhere": "Bütün mağazalarda eyni qiymət",
+  "pricesDifferBetweenStores": "Mağazalar arasında qiymət fərqlənir — öz mağazanızı seçin",
+  "pickYourStoreRequired": "Mağazanı seçin — qiymət ondan asılıdır",
+  "pickAtLeastOneChain": "Ən azı bir şəbəkə seçin",
+  "pickStoreToContinue": "Seçdiyiniz şəbəkə üçün mağazanı da seçin",
+  "pickStoreForChains": "{chains} üçün mağaza seçin — qiymət mağazadan asılıdır",
+  "@pickStoreForChains": {
+    "placeholders": {
+      "chains": {
+        "type": "String"
+      }
+    }
+  },
+  "continueLabel": "Davam et",
+  "save": "Yadda saxla",
+  "cancel": "İmtina",
+  "retry": "Yenidən",
+  "changeLaterInSettings": "Sonra tənzimləmələrdən dəyişə bilərsiniz",
+  "settingsStores": "Mənim mağazalarım",
+  "storesNotPicked": "Mağaza seçilməyib",
+  "chainsPicked": "{count, plural, one{{count} şəbəkə} other{{count} şəbəkə}}",
+  "@chainsPicked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storeChangeInvalidatesPrices": "Mağazanı dəyişsəniz, qiymətlər yenidən yüklənəcək",
+  "clear": "Təmizlə",
+  "scanTitle": "Barkodu skan et",
+  "scanHint": "Barkodu çərçivəyə tutun",
+  "scanNotFound": "{code} bazamızda yoxdur. Başqa məhsul yoxlayın",
+  "@scanNotFound": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTooShort": "Ən azı {count} hərf yazın",
+  "@searchTooShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "popularQueries": "Tez-tez axtarılanlar",
+  "promoBadge": "Endirim",
+  "offlineDataFrom": "İnternet yoxdur. Məlumatlar {time} tarixindəndir",
+  "@offlineDataFrom": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pricePerKilogram": "1 kq-ın qiyməti",
+  "perKilogramExplained": "Bu çəki ilə satılan məhsuldur: qiymət 1 kiloqrama görədir, paketə görə yox.",
+  "priceHistory": "Qiymət tarixçəsi",
+  "historyTooShort": "Tarixçə hələ azdır. Bir neçə gündən sonra qrafik görünəcək",
+  "historyUnavailable": "Tarixçəni yükləmək alınmadı",
+  "watchPrice": "Qiyməti izlə",
+  "watching": "İzlənilir",
+  "watchStart": "İzləməyə başla",
+  "watchExplained": "Qiymət ən azı 5% düşəndə bildiriş göndərəcəyik. İstəsəniz, öz hədəf qiymətinizi də yaza bilərsiniz.",
+  "currentBestPrice": "İndiki ən yaxşı qiymət",
+  "targetPriceOptional": "Hədəf qiymət (vacib deyil)",
+  "targetPriceHint": "məsələn, 13,99",
+  "targetPriceInvalid": "Qiyməti düzgün yazın: 13,99",
+  "addToList": "Siyahıya əlavə et",
+  "inList": "Siyahıdadır",
+  "filters": "Süzgəclər",
+  "filtersReset": "Sıfırla",
+  "filtersApply": "Göstər",
+  "filterAny": "Hamısı",
+  "filterMinDiscount": "Ən azı endirim",
+  "filterMyChainsOnly": "Yalnız mənim şəbəkələrim",
+  "filterCategory": "Kateqoriya",
+  "dealsEmptyFiltered": "Bu süzgəclərlə endirim tapılmadı",
+  "dealsEnd": "Hamısı budur",
+  "loadMoreFailed": "Davamını yükləmək alınmadı",
+  "aboveMarket": "Bazardan {percent}% baha",
+  "@aboveMarket": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "marketExplainTitle": "«Bazardan ucuz» nə deməkdir",
+  "marketExplainBody": "Bazar — eyni barkodlu məhsulun DİGƏR şəbəkələrdəki adi, endirimsiz qiymətlərinin medianı. Bu hesablamada {count} belə qiymət iştirak edib. Şəbəkənin öz üstündən xətt çəkdiyi qiymətə görə yox, məhz bazara görə sayırıq.",
+  "@marketExplainBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marketExplainNow": "İndi",
+  "marketExplainClaimed": "Şəbəkə deyir",
+  "marketExplainMarket": "Bazar",
+  "inflatedExplained": "Elan edilən endirim həqiqidən {points} bənd dərindir. Yəni köhnə qiymət şişirdilib.",
+  "@inflatedExplained": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "share": "Paylaş",
+  "shareFailed": "Şəkil hazırlanmadı",
+  "shareText": "{name} — {price} {chain}-da, bazardan {percent}% ucuz. qiymət ilə tapdım.",
+  "@shareText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      },
+      "chain": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "basketTotalTitle": "{count, plural, one{{count} məhsul üçün yekun} other{{count} məhsul üçün yekun}}",
+  "@basketTotalTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basketSplitInto": "{count, plural, one{{count} mağazaya bölsəniz} other{{count} mağazaya bölsəniz}}",
+  "@basketSplitInto": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basketSaves": "qənaət {amount}",
+  "@basketSaves": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "basketSplitDisclaimer": "Adətən bölmək az qazandırır. İkinci mağazaya getməyə dəyərmi — özünüz qərar verin.",
+  "basketOtherChains": "Digər şəbəkələr",
+  "basketMissingItems": "{count, plural, one{{count} məhsul yoxdur} other{{count} məhsul yoxdur}}",
+  "@basketMissingItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basketNoCompleteChain": "Heç bir şəbəkə siyahını tam bağlamır — bölmək lazım gələcək",
+  "basketNoPricesYet": "Qiymətlər hələ yüklənməyib. İnternet olanda yenilənəcək",
+  "basketOnlyManual": "Əl ilə yazılan sətirlərin qiyməti olmur",
+  "basketManualExcluded": "{count, plural, one{{count} sətir əl ilə yazılıb} other{{count} sətir əl ilə yazılıb}}",
+  "@basketManualExcluded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basketUnpricedExcluded": "{count, plural, one{{count} məhsulun qiyməti yoxdur} other{{count} məhsulun qiyməti yoxdur}}",
+  "@basketUnpricedExcluded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basketManualItem": "əl ilə yazılıb",
+  "basketNoPrice": "seçdiyiniz şəbəkələrdə yoxdur",
+  "basketAddManual": "Əl ilə əlavə et",
+  "basketAddManualHint": "məsələn, çörək",
+  "basketAdd": "Əlavə et",
+  "basketRefreshPrices": "Qiymətləri yenilə",
+  "basketPricesOffline": "İnternet yoxdur. Köhnə qiymətlər göstərilir",
+  "consentTitle": "Çeklərin emalına razılıq",
+  "consentAgree": "Razıyam",
+  "consentDecline": "İndi yox",
+  "consentScrollToEnd": "Razılaşmaq üçün mətni sonadək oxuyun",
+  "consentRevokeTitle": "Razılığı geri götür",
+  "consentRevokeSubtitle": "Bütün çekləriniz silinəcək",
+  "consentRevokeBody": "Razılığı geri götürsəniz, bütün çekləriniz silinir və toplanan ballar sıfırlanır. Şəxssizləşdirilmiş qiymətlər statistikada qalır — razılıq mətnində bu barədə yazılıb.",
+  "consentRevokeConfirm": "Geri götür və sil",
+  "receiptScanTitle": "Çeki skan et",
+  "receiptScanHint": "Çekdəki QR kodu çərçivəyə tutun",
+  "receiptFailed": "Çeki oxumaq alınmadı. Başqa çek yoxlayın",
+  "receiptsTitle": "Çeklərim",
+  "receiptsEmpty": "Hələ çek yoxdur",
+  "receiptsWhy": "Kassadakı qiymət vitrindəkindən dəqiqdir. Çekiniz bizim çata bilmədiyimiz mağazaların qiymətlərini açır.",
+  "receiptUnknownStore": "Naməlum mağaza",
+  "receiptsUploaded": "{count, plural, one{{count} çek} other{{count} çek}}",
+  "@receiptsUploaded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pointsTitle": "Ballarınız",
+  "dataRefreshingTitle": "Məlumatlar yenilənir",
+  "dataRefreshingBody": "Bəzi qiymətlər hələ yoxlanılmayıb. Bir azdan yenidən baxın"
+}

@@ -1,0 +1,334 @@
+# Проверки, которые обязаны пройти до деплоя.
+#
+# Задача не «покрыть код тестами», а поймать ровно те поломки, которые уже
+# случались: цена, равная нулю; акция, где цена выросла; дубли SKU при пустом
+# store_id; развалившаяся склейка; магазин из другой страны с медианой 1014
+# манатов; сломавшийся разбор фасовки; тихая потеря межсетевых склеек; сеть,
+# не обновлявшаяся сутки. И четыре клиентских: нормализация азербайджанского
+# текста, показ денег, инвалидация цен при смене магазина, основной путь.
+#
+# ЛЮБАЯ упавшая проверка блокирует деплой. Джоб deploy требует все три
+# предыдущих; в GitHub Actions `needs` не запускает зависимый джоб, если хоть
+# один из указанных упал, поэтому отдельного «сторожа» не нужно.
+#
+# Отдельно от CI: проверки 5-8 гоняются и на проде после каждого прогона сбора
+# (`python3 -m checks.runner --source crawl`). Результат ложится в dq_runs,
+# /v1/health отдаёт его клиенту, и приложение показывает плашку «данные
+# обновляются» вместо подозрительных цифр. Молча показывать мусор нельзя:
+# человек съездит в магазин по неверной цене и не вернётся.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Пароль тестовый и одноразовый: база живёт внутри джоба и умирает вместе
+  # с ним. Настоящая строка подключения лежит в секретах окружения.
+  DATABASE_URL: postgresql+psycopg://qiymet:qiymet@localhost:5432/qiymet
+  PYTHONPATH: ${{ github.workspace }}
+
+jobs:
+  # ---------------------------------------------------------------- данные
+  data:
+    name: Проверки данных (1-8)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # Та же мажорная версия, что в бою. Партиционирование, matview
+        # с CONCURRENTLY и normalize(..., NFD) — вещи версионные, и проверять
+        # их на другой версии значит проверять другую базу.
+        image: postgres:16
+        env:
+          POSTGRES_USER: qiymet
+          POSTGRES_PASSWORD: qiymet
+          POSTGRES_DB: qiymet
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U qiymet"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Зависимости
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt alembic
+
+      - name: Миграции
+        working-directory: db
+        run: alembic upgrade head
+
+      - name: Импорт дампа
+        # Дамп пайплайна лежит в репозитории: проверки без данных ничего не
+        # проверяют, а на синтетике не воспроизводится ни одна из поломок,
+        # ради которых всё это писалось.
+        run: python3 db/import_sqlite.py --sqlite pipeline/qiymet.db
+
+      - name: Сверка счётчиков после импорта
+        run: python3 db/import_sqlite.py --verify
+
+      - name: Восемь проверок данных
+        # Ненулевой код возврата блокирует деплой. Прогон не останавливается
+        # на первой упавшей: если сломался сбор, падает сразу несколько, и
+        # видеть надо все.
+        #
+        # --allow-stale пропускает восьмую (возраст данных). Дамп лежит в
+        # репозитории и заведомо старше двенадцати часов: здесь проверка
+        # мерила бы возраст файла, а не работу сбора. На проде флаг запрещён —
+        # раннер ругается на --allow-stale вместе с --source crawl.
+        run: python3 -m checks.runner --source ci --allow-stale
+
+      - name: Тесты API
+        env:
+          # Против НАСТОЯЩЕГО Redis, а не fakeredis. Тот не воспроизводит ни
+          # привязку соединения к событийному циклу, ни выселение по
+          # maxmemory: первый же прогон против живого сервера нашёл падение,
+          # которого на fakeredis не было.
+          QIYMET_TEST_REDIS_URL: redis://localhost:6379/1
+        # Явный путь, а не голый pytest: testpaths в pytest.ini захватывает
+        # ещё и notify, а он гоняется отдельным джобом без базы.
+        run: pytest -q api/tests
+
+      - name: Проверки данных как pytest
+        # Те же проверки, но с именами поломок: падение читается дежурным
+        # в три часа ночи без чтения SQL. Восьмая здесь помечена как xfail
+        # по той же причине — дамп в репозитории всегда «несвежий».
+        env:
+          QIYMET_FIXTURE_DUMP: '1'
+        run: pytest -q checks/tests
+
+  # ---------------------------------------------------------------- клиент
+  client:
+    name: Проверки клиента (9-12)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Зависимости
+        run: flutter pub get
+
+      - name: Кодогенерация
+        # Сгенерированные файлы в репозитории не хранятся, поэтому генератор
+        # обязан отработать до анализа: иначе «ошибок нет» означало бы, что
+        # анализировать было нечего.
+        run: dart run build_runner build
+
+      - name: Формат
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Анализатор
+        run: flutter analyze --no-fatal-infos
+
+      - name: Тесты
+        # Здесь же проверки 9-12: normalizeAz на İ, Ə, Ğ, Ş и на смеси
+        # алфавитов; golden на PriceText (0, 5, 199999 гяпиков, с акцией и
+        # без); смена магазина инвалидирует цены; основной путь целиком.
+        run: flutter test --reporter expanded
+
+      - name: Эталоны golden при падении
+        # Картинки с разницей нужны ровно тогда, когда тест упал: без них
+        # «golden не совпал» — сообщение, с которым нечего делать.
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: app/test/**/failures/**
+          if-no-files-found: ignore
+
+  # ------------------------------------------------- сборка под Android
+  build-android:
+    name: Сборка Android (appbundle)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Зависимости
+        run: flutter pub get
+
+      - name: Кодогенерация
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # Сборка платформы — единственное место, где видно то, чего не видно
+      # ни в analyze, ни в тестах: зарегистрировались ли плагины, сошёлся ли
+      # слитый манифест, пережил ли minSdk 21 самый требовательный плагин.
+      # Тесты гоняются на flutter_tester, где ничего этого просто нет.
+      - name: appbundle
+        # Без подписи: key.properties в репозитории нет, и release уходит
+        # с отладочным ключом. Такой артефакт Play не примет — и это
+        # правильно, случайно выложить нечем. Собирается он при этом целиком,
+        # со всеми проверками, ради которых сюда и пришли.
+        run: flutter build appbundle --release
+
+      - name: apk
+        # APK нужен следующему джобу и живым людям: .aab нельзя поставить
+        # на телефон напрямую, а «дай посмотреть» просят именно так.
+        run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-appbundle
+          path: |
+            app/build/app/outputs/bundle/release/*.aab
+            app/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+
+  # ------------------------------------------- прогон на эмуляторе Android
+  integration-android:
+    name: Основной путь на эмуляторе
+    runs-on: ubuntu-latest
+    # Эмулятору нужна аппаратная виртуализация, а бесплатным раннерам
+    # ubuntu-latest её дали не так давно. Если джоб начнёт падать на старте
+    # KVM — это оно, и лечится macos-13 с ручным AVD, а не правкой теста.
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Зависимости
+        run: flutter pub get
+
+      - name: Кодогенерация
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Разрешить KVM
+        # Без этого правила udev эмулятор поднимается программной эмуляцией
+        # и упирается в таймаут вместо запуска.
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Эмулятор и прогон
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          # 21 — та самая нижняя планка, которую мы объявили в build.gradle.kts.
+          # Проверять надо именно её: на API 34 всё работает и так, а телефон
+          # человека, ради которого понижали, остаётся непроверенным.
+          api-level: 21
+          target: default
+          arch: x86_64
+          profile: pixel_5
+          ram-size: 2048M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          working-directory: app
+          script: |
+            flutter drive \
+              --driver=test_driver/integration_test.dart \
+              --target=integration_test/app_flow_test.dart \
+              --dart-define=QIYMET_SCREENSHOTS=true \
+              -d emulator-5554
+
+      - name: Снимки экрана
+        # Выкладываем ВСЕГДА, а не только при успехе: когда тест упал,
+        # картинка последнего экрана объясняет причину быстрее, чем лог.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-screenshots
+          path: app/build/screenshots/*.png
+          if-no-files-found: warn
+
+  # ------------------------------------------------------------- пайплайн
+  pipeline:
+    name: Тесты пайплайна
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Зависимости
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt
+
+      - name: Тесты уведомлений и нормализации
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: pytest -q notify/tests
+
+  # --------------------------------------------------------------- деплой
+  deploy:
+    name: Деплой
+    needs: [data, client, pipeline, build-android, integration-android]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Заглушка
+        # Настоящий деплой появится вместе с окружением. Джоб заведён сейчас,
+        # чтобы связь «упала проверка — деплоя нет» была видна в файле, а не
+        # держалась на договорённости.
+        run: echo "Все проверки прошли. Здесь будет выкладка."

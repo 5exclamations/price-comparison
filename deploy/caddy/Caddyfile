@@ -1,0 +1,51 @@
+# TLS выпускается и продлевается сам. Ради этого Caddy здесь и стоит: nginx
+# с certbot — это ещё один cron, который однажды тихо перестанет работать,
+# и узнаешь об этом по истёкшему сертификату.
+
+{
+	email {$QIYMET_ACME_EMAIL}
+
+	# Логи доступа — в файл с ротацией, а не в поток контейнера.
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 20MiB
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+{$QIYMET_DOMAIN} {
+	encode zstd gzip
+
+	# Заголовки безопасности. API отдаёт JSON, но домен один на всё, и
+	# однажды на нём окажется страница политики конфиденциальности.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Приложение ходит только в /v1. Всё остальное наружу не нужно:
+	# /docs и /openapi.json — это карта наших запросов для того, кто решит
+	# ходить по ним сам.
+	handle /v1/* {
+		reverse_proxy api:8000 {
+			# Пятиминутный кеш и ETag живут в приложении; Caddy их не трогает,
+			# иначе будет два кеша с разными сроками жизни.
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Проверка живости для внешнего монитора. Отдельный путь, чтобы монитор
+	# не ходил в /v1/health и не выгребал кеш каждую минуту.
+	handle /healthz {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		respond "qiymət" 200
+	}
+}

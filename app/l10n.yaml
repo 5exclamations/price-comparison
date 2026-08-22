@@ -1,0 +1,9 @@
+# Локализации генерируются из lib/l10n/*.arb в lib/l10n/app_localizations.dart.
+# Шаблон — азербайджанский: он основной язык приложения, и новые строки
+# добавляются сначала в него.
+arb-dir: lib/l10n
+template-arb-file: app_az.arb
+output-localization-file: app_localizations.dart
+output-dir: lib/l10n
+synthetic-package: false
+nullable-getter: false

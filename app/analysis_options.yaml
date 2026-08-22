@@ -1,0 +1,32 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.freezed.dart"
+    - "**/*.g.dart"
+    - "lib/l10n/app_localizations*.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+  errors:
+    # Магические числа и цвета мимо токенов ловятся ревью, а вот эти вещи
+    # ломают приложение молча, поэтому они ошибки, а не подсказки.
+    invalid_annotation_target: ignore
+    missing_required_param: error
+    missing_return: error
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_print
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_locals
+    - require_trailing_commas
+    - sort_child_properties_last
+    - unawaited_futures
+    - use_super_parameters

@@ -1,0 +1,103 @@
+#cloud-config
+# Первичная настройка машины. Всё, что здесь есть, повторяется руками по
+# deploy/README.md — cloud-init только экономит время, а не прячет магию.
+
+users:
+  - name: ${admin_user}
+    groups: [docker, sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - gnupg
+  - ufw
+  - unattended-upgrades
+
+write_files:
+  # Часовой пояс Баку на всей машине: расписание сбора описано в местном
+  # времени (4:15 ночью, понедельник 5:30), и держать хост в UTC значит
+  # каждый раз пересчитывать в уме.
+  - path: /etc/timezone
+    content: |
+      Asia/Baku
+
+  # Swap на 2 ГБ. Не ради производительности — ради того, чтобы ночной full
+  # не убивал Postgres по OOM на пике разбора каталога. Своп медленный, но
+  # медленный прогон лучше упавшей базы.
+  - path: /etc/sysctl.d/99-qiymet.conf
+    content: |
+      vm.swappiness = 10
+      vm.overcommit_memory = 2
+      vm.overcommit_ratio = 80
+
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+runcmd:
+  - timedatectl set-timezone Asia/Baku
+
+  # --- диск под данные ---
+  # Монтируем по UUID, а не по /dev/sdb: имена устройств переезжают при
+  # пересоздании машины, и fstab с /dev/sdb однажды не даст ей загрузиться.
+  - |
+    set -e
+    DEV="${volume_device}"
+    if ! blkid "$DEV" > /dev/null 2>&1; then
+      mkfs.ext4 -F "$DEV"
+    fi
+    mkdir -p /srv/qiymet-data
+    UUID=$(blkid -s UUID -o value "$DEV")
+    grep -q "$UUID" /etc/fstab || \
+      echo "UUID=$UUID /srv/qiymet-data ext4 discard,nofail,defaults 0 2" >> /etc/fstab
+    mount -a
+
+  # --- swap ---
+  - |
+    set -e
+    if [ ! -f /swapfile ]; then
+      fallocate -l 2G /swapfile
+      chmod 600 /swapfile
+      mkswap /swapfile
+      swapon /swapfile
+      grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    fi
+  - sysctl --system
+
+  # --- docker ---
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - |
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - systemctl enable --now docker
+  - usermod -aG docker ${admin_user}
+
+  # --- файрвол на самой машине ---
+  # Дублирует облачный намеренно. Облачный файрвол можно случайно отвязать
+  # одним `terraform apply` из другой ветки; ufw останется.
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443
+  - ufw --force enable
+
+  # --- каталоги под данные ---
+  # Тома docker-compose складываем на прикреплённый диск, а не на системный:
+  # ради этого он и прикреплён.
+  - mkdir -p /srv/qiymet-data/{backups,logs,postgres}
+  - chown -R ${admin_user}:${admin_user} /srv/qiymet-data
+
+final_message: "Машина готова за $UPTIME секунд. Дальше — .env и first-run.sh"

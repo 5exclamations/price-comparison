@@ -1,0 +1,106 @@
+name: qiymet
+description: Сравнение цен в супермаркетах Азербайджана
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Состояние
+  flutter_riverpod: ^2.5.1
+
+  # Навигация
+  go_router: ^16.0.0
+
+  # Сеть
+  dio: ^5.5.0
+  retrofit: ^4.10.0
+
+  # Модели
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.9.0
+
+  # Локальный кеш
+  drift: ^2.28.0
+  drift_flutter: ^0.2.0
+
+  # Выбор магазина: одна маленькая настройка, которую надо прочитать до
+  # первого кадра. Таблица в drift ради неё была бы лишним слоем.
+  shared_preferences: ^2.3.0
+
+  # Геолокация для подсказки ближайших магазинов. Отказ — штатный исход,
+  # см. lib/core/geo.dart.
+  geolocator: ^13.0.1
+
+  # Сканер штрихкода. Самый быстрый путь к цене: человек стоит у полки
+  # с пачкой в руке, набирать название незачем.
+  mobile_scanner: ^5.2.3
+
+  # Шеринг находки картинкой. Основной органический канал — пересылка
+  # в WhatsApp, а там картинка разворачивается сразу.
+  # Сам снимок делается через RepaintBoundary из Flutter, библиотека
+  # скриншотов не нужна.
+  share_plus: ^10.0.2
+  path_provider: ^2.1.4
+
+  # Форматирование чисел по локали. Используется ТОЛЬКО в PriceText.
+  intl: any
+
+  # NFD-нормализация. В dart:core её нет, а нормализация запроса без неё
+  # неполная: ğ не разложится в g + U+0306, и поиск разойдётся с сервером.
+  unorm_dart: ^0.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Прогон на настоящем устройстве. Из SDK, а не из сети: пакет едет вместе
+  # с Flutter, поэтому добавление зависимости не требует похода в pub.dev.
+  #
+  # Зачем он поверх widget-тестов: те гоняются на flutter_tester, где нет ни
+  # плагинов, ни настоящего движка отрисовки. Регистрация плагинов, слияние
+  # манифестов, подпись и то, как рисует шрифт настоящий Skia, видны только
+  # здесь.
+  integration_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  build_runner: ^2.4.11
+  freezed: ^3.2.0
+  json_serializable: ^6.11.0
+  retrofit_generator: ^10.2.8
+  drift_dev: ^2.28.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/fonts/
+
+  # Inter вместо системного шрифта. В некоторых сборках Roboto нет ə (U+0259),
+  # и буква молча подменяется из запасного шрифта — в азербайджанском тексте
+  # это видно сразу, потому что ə одна из самых частых букв.
+  #
+  # Покрытие проверено по таблице cmap: ə ı ğ ş ç ö ü в обоих регистрах плюс
+  # кириллица для русской локали. Контрольная строка —
+  # «Çuğundur, göbələk, şəkər tozu, ət və südlü məhsullar».
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700

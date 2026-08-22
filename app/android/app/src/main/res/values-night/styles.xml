@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Тема стартового окна. Показывается ДО первого кадра Flutter, пока
+         поднимается движок: на слабом телефоне это секунда-полторы, и белая
+         вспышка вместо неё выглядит как подвисание.
+
+         windowBackground ссылается на drawable со сплэшем; сам сплэш — фон
+         цвета фирменной зелени плюс иконка по центру. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+
+    <!-- Тема, которая остаётся после инициализации. Отдельно от LaunchTheme:
+         иначе сплэш-картинка осталась бы фоном окна навсегда и просвечивала
+         бы сквозь полупрозрачные места интерфейса. -->
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

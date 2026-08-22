@@ -1,0 +1,61 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ГЕОЛОКАЦИЯ: намеренно только COARSE, без ACCESS_FINE_LOCATION.
+         Точное местоположение нужно навигатору, а нам — отсортировать список
+         магазинов по близости. Квартал точности для этого хватает с запасом,
+         а просить точку с точностью до метра ради сортировки списка значит
+         брать больше, чем нужно для работы, и объяснять это человеку нечем.
+         Отказ от геолокации — штатный исход: есть выбор района руками. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- КАМЕРА: сканер штрихкода у полки и QR с фискального чека.
+         Оба сценария — разовые, по нажатию кнопки. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- Сеть: цены приходят с нашего API. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <!-- Камера ЖЕЛАТЕЛЬНА, но не обязательна: приложение полностью работает
+         без неё — поиск по названию, список покупок, лента выгод. required=false
+         оставляет его в Play для планшетов без задней камеры. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
+
+    <application
+        android:label="@string/app_name"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Тема стартового окна: показывается, пока поднимается движок.
+                 Здесь же живёт splash — см. res/values/styles.xml. -->
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <!-- Не удалять: по этому ключу Flutter собирает GeneratedPluginRegistrant. -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>

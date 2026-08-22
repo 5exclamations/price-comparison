@@ -1,0 +1,22 @@
+targets:
+  $default:
+    builders:
+      # Модели данных
+      freezed:
+        generate_for:
+          - lib/domain/models/**.dart
+          - lib/data/api/dto/**.dart
+      json_serializable:
+        options:
+          field_rename: none
+          explicit_to_json: true
+        generate_for:
+          - lib/data/api/dto/**.dart
+      # Клиент API
+      retrofit_generator:
+        generate_for:
+          - lib/data/api/qiymet_api.dart
+      # Локальный кеш
+      drift_dev:
+        generate_for:
+          - lib/data/cache/**.dart

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Держать согласованным с AppColors в lib/design/tokens/colors.dart. -->
+    <color name="splash_background">#0E6B3D</color>
+</resources>

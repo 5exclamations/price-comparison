@@ -1,0 +1,197 @@
+# Вся инфраструктура одного VPS.
+#
+# Kubernetes здесь незачем: сервисов пять, машина одна, нагрузка на старте —
+# несколько тысяч запросов в сутки. Оркестратор добавил бы слой, который надо
+# чинить в три часа ночи, и ничего взамен.
+#
+#   caddy     — TLS и единственный порт наружу
+#   api       — uvicorn, только внутренняя сеть
+#   worker    — сбор по расписанию и рассылка уведомлений
+#   postgres  — 16, та же мажорная версия, что в CI
+#   redis     — кеш ответов API
+#   backup    — ежедневный дамп, хранение 30 дней, ежемесячная проверка отката
+#
+# Наружу торчит только caddy. Postgres и redis не публикуют портов вообще:
+# `ports:` у них нет, и это не забывчивость. Открытый 5432 на VPS с паролем из
+# .env — это вопрос времени, а не удачи.
+
+name: qiymet
+
+x-logging: &file-logging
+  # Логи в файл с ротацией, а не в stdout контейнера. Через `docker logs`
+  # история теряется при пересоздании контейнера, а грепать её нечем.
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+services:
+  # ------------------------------------------------------------------ Caddy
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data          # сертификаты; терять нельзя, иначе rate limit
+      - caddy_config:/config
+      - ./logs/caddy:/var/log/caddy
+    environment:
+      QIYMET_DOMAIN: ${QIYMET_DOMAIN:?нужен домен, TLS без него не выпустится}
+      QIYMET_ACME_EMAIL: ${QIYMET_ACME_EMAIL:?нужна почта для Let's Encrypt}
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *file-logging
+
+  # -------------------------------------------------------------------- API
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/docker/api.Dockerfile
+    restart: unless-stopped
+    environment:
+      QIYMET_DATABASE_URL: postgresql+psycopg://qiymet:${POSTGRES_PASSWORD:?}@postgres:5432/qiymet
+      QIYMET_REDIS_URL: redis://redis:6379/0
+      QIYMET_STALE_AFTER_HOURS: "12"
+      TZ: Asia/Baku
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Свой лёгкий эндпоинт, а не /v1/health: тот ходит в базу и в dq_runs,
+      # и дёргать его каждые 15 секунд ради «жив ли процесс» — лишняя работа.
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging: *file-logging
+
+  # ----------------------------------------------------------------- worker
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/docker/worker.Dockerfile
+    restart: unless-stopped
+    environment:
+      QIYMET_DATABASE_URL: postgresql+psycopg://qiymet:${POSTGRES_PASSWORD:?}@postgres:5432/qiymet
+      DATABASE_URL: postgresql+psycopg://qiymet:${POSTGRES_PASSWORD:?}@postgres:5432/qiymet
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      QIYMET_FCM_PROJECT_ID: ${QIYMET_FCM_PROJECT_ID:-}
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/fcm.json
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      HEARTBEAT_URL_CRAWL: ${HEARTBEAT_URL_CRAWL:-}
+      PYTHONPATH: /srv/qiymet
+      TZ: Asia/Baku
+    volumes:
+      # Логи прогонов — на хост. Внутри контейнера они переживут только его.
+      - ./logs/pipeline:/srv/qiymet/logs
+      # SQLite-база пайплайна: сбор пишет в неё, потом импорт переливает
+      # в Postgres. Том именованный, чтобы прогон переживал пересборку образа.
+      - pipeline_db:/srv/qiymet/pipeline/state
+      - ${QIYMET_FCM_KEY_PATH:-/dev/null}:/run/secrets/fcm.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *file-logging
+
+  # --------------------------------------------------------------- Postgres
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qiymet
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?пароль базы обязателен}
+      POSTGRES_DB: qiymet
+      # Локаль C и явная кодировка: qiymet_norm сама складывает регистр
+      # кириллицы, чтобы не зависеть от локали кластера, и менять её под
+      # ногами у индексов нельзя.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      TZ: Asia/Baku
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./logs/postgres:/var/log/postgresql
+    command:
+      - postgres
+      # 2 ГБ RAM на VPS: четверть под shared_buffers — обычная отправная точка.
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - maintenance_work_mem=128MB
+      # REFRESH MATERIALIZED VIEW CONCURRENTLY строит временный индекс,
+      # 64 МБ по умолчанию превращают это в сортировку на диске.
+      - -c
+      - work_mem=32MB
+      - -c
+      - log_min_duration_statement=1000
+      - -c
+      - log_destination=stderr
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qiymet -d qiymet"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging: *file-logging
+
+  # ------------------------------------------------------------------ Redis
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      # Кеш, а не хранилище: persistence не нужен, а вот выселение нужно.
+      # allkeys-lru, потому что все ключи одинаково расходные — потеря любого
+      # означает один поход в базу, не потерю данных.
+      - redis-server
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *file-logging
+
+  # ----------------------------------------------------------------- бэкапы
+  backup:
+    build:
+      context: ..
+      dockerfile: deploy/docker/backup.Dockerfile
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGUSER: qiymet
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      PGDATABASE: qiymet
+      BACKUP_KEEP_DAYS: "30"
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TZ: Asia/Baku
+    volumes:
+      - ./backups:/backups
+      - ./logs/backup:/var/log/qiymet
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *file-logging
+
+volumes:
+  pg_data:
+  caddy_data:
+  caddy_config:
+  pipeline_db:
