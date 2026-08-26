@@ -278,5 +278,10 @@
   },
   "pointsTitle": "Ballarınız",
   "dataRefreshingTitle": "Məlumatlar yenilənir",
-  "dataRefreshingBody": "Bəzi qiymətlər hələ yoxlanılmayıb. Bir azdan yenidən baxın"
+  "dataRefreshingBody": "Bəzi qiymətlər hələ yoxlanılmayıb. Bir azdan yenidən baxın",
+  "catalogTitle": "Kataloq",
+  "catalogOpen": "Mağazanın kataloquna baxın",
+  "catalogAllCategories": "Hamısı",
+  "catalogEmpty": "Bu bölmədə məhsul yoxdur",
+  "catalogPickStore": "Mağaza seçin"
 }

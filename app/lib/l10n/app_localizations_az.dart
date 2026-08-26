@@ -524,4 +524,19 @@ class AppLocalizationsAz extends AppLocalizations {
   @override
   String get dataRefreshingBody =>
       'Bəzi qiymətlər hələ yoxlanılmayıb. Bir azdan yenidən baxın';
+
+  @override
+  String get catalogTitle => 'Kataloq';
+
+  @override
+  String get catalogOpen => 'Mağazanın kataloquna baxın';
+
+  @override
+  String get catalogAllCategories => 'Hamısı';
+
+  @override
+  String get catalogEmpty => 'Bu bölmədə məhsul yoxdur';
+
+  @override
+  String get catalogPickStore => 'Mağaza seçin';
 }

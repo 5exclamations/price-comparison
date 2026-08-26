@@ -921,6 +921,36 @@ abstract class AppLocalizations {
   /// In az, this message translates to:
   /// **'Bəzi qiymətlər hələ yoxlanılmayıb. Bir azdan yenidən baxın'**
   String get dataRefreshingBody;
+
+  /// No description provided for @catalogTitle.
+  ///
+  /// In az, this message translates to:
+  /// **'Kataloq'**
+  String get catalogTitle;
+
+  /// No description provided for @catalogOpen.
+  ///
+  /// In az, this message translates to:
+  /// **'Mağazanın kataloquna baxın'**
+  String get catalogOpen;
+
+  /// No description provided for @catalogAllCategories.
+  ///
+  /// In az, this message translates to:
+  /// **'Hamısı'**
+  String get catalogAllCategories;
+
+  /// No description provided for @catalogEmpty.
+  ///
+  /// In az, this message translates to:
+  /// **'Bu bölmədə məhsul yoxdur'**
+  String get catalogEmpty;
+
+  /// No description provided for @catalogPickStore.
+  ///
+  /// In az, this message translates to:
+  /// **'Mağaza seçin'**
+  String get catalogPickStore;
 }
 
 class _AppLocalizationsDelegate

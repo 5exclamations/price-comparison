@@ -43,7 +43,7 @@ TABLES = [
       "image_url", "quarantined", "created_at"], ["created_at"]),
     ("store_items",
      ["id", "chain_id", "store_id", "chain_sku", "ean", "ean_kind", "raw_name",
-      "norm_name", "brand", "unit_value", "unit_type", "pack", "image_url",
+      "norm_name", "brand", "unit_value", "unit_type", "pack", "image_url", "category",
       "product_id", "first_seen", "last_seen"], ["first_seen", "last_seen"]),
     ("price_observations",
      ["id", "store_item_id", "price", "old_price", "promo_until", "available",

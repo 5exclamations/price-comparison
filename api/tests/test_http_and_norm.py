@@ -150,6 +150,8 @@ async def test_openapi_builds(client):
         "/v1/watches",
         "/v1/watches/{watch_id}",
         "/v1/categories",
+        "/v1/catalog",
+        "/v1/catalog/categories",
         "/v1/prices",
         "/v1/receipts",
         "/v1/receipts/{receipt_id}",

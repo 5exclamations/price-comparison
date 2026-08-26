@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../providers/settings_providers.dart';
 import '../../providers/store_providers.dart';
 import '../../router.dart';
+import '../catalog/catalog_screen.dart';
 
 /// Настройки: язык, тема, выбранный магазин. Заглушка с рабочими
 /// переключателями языка и темы.
@@ -34,6 +35,16 @@ class SettingsScreen extends ConsumerWidget {
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(Routes.settingsStores),
+          ),
+          ListTile(
+            leading: const Icon(Icons.grid_view_outlined),
+            title: Text(l10n.catalogOpen),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const CatalogPickerScreen(),
+              ),
+            ),
           ),
           ListTile(
             leading: const Icon(Icons.receipt_long_outlined),

@@ -5,16 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../design/tokens/colors.dart';
 import '../../../design/tokens/spacing.dart';
 import '../../../design/widgets/observed_at_text.dart';
-import '../../../design/widgets/packaging_text.dart';
-import '../../../design/widgets/product_thumb.dart';
-import '../../../design/widgets/price_text.dart';
 import '../../../design/widgets/questionable_data_banner.dart';
 import '../../../design/widgets/stale_banner.dart';
 import '../../../domain/models/freshness.dart';
-import '../../../domain/models/packaging.dart';
 import '../../../domain/models/product_summary.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/search_providers.dart';
+import '../../widgets/product_row.dart';
 import '../../router.dart';
 import 'scanner_screen.dart';
 
@@ -170,7 +167,7 @@ class _Results extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: Spacing.xxl),
             itemCount: items.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, i) => _ResultCard(item: items[i]),
+            itemBuilder: (context, i) => ProductRow(item: items[i]),
           ),
         ),
       ],
@@ -180,109 +177,6 @@ class _Results extends StatelessWidget {
 
 /// Карточка результата: название, фасовка, минимальная цена, бейдж акции,
 /// число сетей.
-class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.item});
-
-  final ProductSummary item;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final packaging = Packaging(value: item.unitValue, type: item.unitType);
-
-    return InkWell(
-      onTap: () => context.push(Routes.productOf(item.productId)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.lg,
-          vertical: Spacing.md,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ProductThumb(name: item.name, imageUrl: item.imageUrl, size: 48),
-            const SizedBox(width: Spacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: Spacing.xs),
-                  Wrap(
-                    spacing: Spacing.sm,
-                    runSpacing: Spacing.xs,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      PackagingText(
-                        packaging: packaging,
-                        emphasizePerKilogram: false,
-                      ),
-                      Text(
-                        l10n.chainsCount(item.chainsCount),
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                      if (item.hasPromo) const _PromoBadge(),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: Spacing.md),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (item.bestPriceMinor == null)
-                  Text(
-                    l10n.needsStoreSelection,
-                    textAlign: TextAlign.end,
-                    style: Theme.of(context).textTheme.labelSmall,
-                  )
-                else
-                  PriceText(
-                    minor: item.bestPriceMinor!,
-                    emphasis: PriceEmphasis.cheapest,
-                    size: PriceSize.small,
-                    semanticPrefix: item.bestPriceChain,
-                  ),
-                const SizedBox(height: Spacing.xs),
-                // Время наблюдения рядом с ценой — всегда.
-                ObservedAtText(observedAt: item.observedAt, prefixed: false),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PromoBadge extends StatelessWidget {
-  const _PromoBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.priceColors;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: 2),
-      decoration: BoxDecoration(
-        color: colors.promoContainer,
-        borderRadius: BorderRadius.circular(Radii.pill),
-      ),
-      child: Text(
-        AppLocalizations.of(context).promoBadge,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: colors.promo),
-      ),
-    );
-  }
-}
-
 /// Пустое состояние с подсказками. Пустой экран с одним полем ввода не
 /// говорит человеку, что тут вообще можно искать.
 class _EmptyState extends StatelessWidget {

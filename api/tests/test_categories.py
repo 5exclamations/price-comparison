@@ -10,14 +10,20 @@ async def test_categories(client):
     assert "items" in r.json()
 
 
-async def test_empty_on_this_dump(client):
-    """products.category пуста на 100% (0 из 36 214) — список обязан быть пуст.
+async def test_only_categories_with_deals(client):
+    """В списке только разделы, где акции ЕСТЬ.
 
-    Клиент по пустому списку прячет фильтр целиком: ряд чипов, ни один из
-    которых ничего не отфильтрует, читается как поломка.
+    Раньше здесь стояло `items == []`: products.category была пуста на 100%,
+    потому что пайплайн категорию не собирал, хотя Wolt её отдаёт. Теперь
+    собирает, и проверять надо не пустоту, а обещание эндпоинта — раздел без
+    единой акции в фильтр попадать не должен. Клиент по пустому списку прячет
+    фильтр целиком: ряд чипов, ни один из которых ничего не отфильтрует,
+    читается как поломка.
     """
     r = await client.get("/v1/categories")
-    assert r.json()["items"] == []
+    for item in r.json()["items"]:
+        assert item["deals_count"] > 0
+        assert item["code"]
 
 
 async def test_has_etag_and_cache(client):

@@ -68,6 +68,53 @@ def key(name: str):
     return (tuple(sorted(set(t))), u, v, pack, fat(name))
 
 
+def variant_digits(name: str):
+    """Числа, оставшиеся после снятия фасовки и процентов.
+
+    Это варианты товара, а не мусор: «DURACELL BATAREYA 2025» и «2032» —
+    разные батарейки, «BALTİKA PİVƏ 0» и «7» — разное пиво, у краски для волос
+    номер это оттенок. tokens() чистые числа выбрасывает намеренно (там же
+    оказываются внутренние коды сетей), но для loose_key() их терять нельзя:
+    без них склеится то, что склеивать нельзя.
+    """
+    s = (name or '').translate(TRANS).lower()
+    s = re.sub(r'\d+(?:[.,]\d+)?\s*%', ' ', s)
+    s = units.MULTI.sub(' ', s)
+    s = units.AMOUNT.sub(' ', s)
+    s = units.PACK.sub(' ', s)
+    return tuple(sorted(t for t in TOKEN.findall(s) if t.isdigit()))
+
+
+def loose_key(name: str):
+    """Отпечаток, терпимый к пробелу внутри названия бренда.
+
+    Сети пишут один бренд по-разному: «Azərsüd Süd» и «Azər Süd» — это молоко
+    Azərsüd, но у key() отпечатки разные (`azarsud`+`sud` против `azar`+`sud`),
+    а триграммная похожесть 0.62 при пороге 0.82. Понижать порог нельзя: на нём
+    держится точность 96%.
+
+    Приём: слово, целиком входящее в другое слово того же названия, выкидываем,
+    остальные склеиваем в одну строку без границ.
+
+        ('azarsud', 'sud') -> 'sud' входит в 'azarsud' -> 'azarsud'
+        ('azar', 'sud')    -> ни одно не входит        -> 'azarsud'
+
+    Фасовка, упаковка, жирность и варианты-числа остаются в ключе как есть —
+    без них ключ склеивает 20% сметану с 25%, а 2025-ю батарейку с 2032-й.
+    Проверено на живой базе: 653 группы, все просмотренные — настоящие дубли.
+
+    Ключ заведомо грубее key(), поэтому применять его можно только между
+    РАЗНЫМИ сетями. Внутри одной сети одинаковое название почти всегда значит
+    разный артикул: у «DONEGAL DARAQ» их два десятка подряд.
+    """
+    k = key(name)
+    if k is None:
+        return None
+    t, u, v, pack, f = k
+    keep = [w for w in t if not any(w != o and w in o for o in t)]
+    glued = ''.join(sorted(keep or t))
+    return (glued, u, v, pack, f, variant_digits(name))
+
 if __name__ == '__main__':
     pairs = [
         ('Pomidor Çəhrayı 1kq 2512', 'POMİDOR ÇƏHRAYI KQ', True),
@@ -78,9 +125,30 @@ if __name__ == '__main__':
         ('Coca-Cola 330 ml', 'COCA COLA 330 ML BANKA', False),   # «banka» различает
         ('Toyuq Budu kq', 'TOYUQ BUDU ÇƏKİ KQ', True),
     ]
+    # loose_key терпит пробел внутри бренда, но обязан сохранять всё, что
+    # различает товар: жирность, фасовку и числа-варианты.
+    loose_pairs = [
+        ('Azərsüd Süd 3.2% 1l', 'Azər Süd 3.2% 1 l', True),
+        ('Azərsüd Süd 3.2% 1l', 'Azərsüd Süd 2.5% 1l', False),   # жирность
+        ('DURACELL BATAREYA 2025', 'DURACELL BATAREYA 2032', False),  # вариант
+        ('BALTİKA PİVƏ 500 ML 0 ŞÜŞƏ', 'BALTİKA PİVƏ 500 ML 7 ŞÜŞƏ', False),
+        ('KOROVUŞKA KƏRƏ YAĞI 400 Q 82,5%', 'Korovuska 400 qr Kərə Yağı 82.5%', True),
+        ('Oman Un 1 kq', 'OMAN UN 1 KQ', True),
+        ('OMAN UN 1 KQ', 'OMAN UN 4 KQ', False),                 # фасовка
+    ]
+
     ok = 0
     for a, b, exp in pairs:
         got = key(a) is not None and key(a) == key(b)
         ok += got == exp
         print(('OK  ' if got == exp else 'FAIL'), f'{a[:32]:34}|{b[:32]:34}', 'совпало' if got else 'разные')
-    print(f'\n{ok}/{len(pairs)}')
+
+    print()
+    for a, b, exp in loose_pairs:
+        got = loose_key(a) is not None and loose_key(a) == loose_key(b)
+        ok += got == exp
+        print(('OK  ' if got == exp else 'FAIL'), f'loose {a[:28]:30}|{b[:28]:30}',
+              'совпало' if got else 'разные')
+
+    total = len(pairs) + len(loose_pairs)
+    print(f'\n{ok}/{total}')

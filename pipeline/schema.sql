@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS store_items (
     unit_type   TEXT,                      -- g / ml / pcs / kg_bulk (весовой, цена за кг)
     pack        INTEGER,                   -- штук в упаковке: «6-LI», «10 LU»
     image_url   TEXT,                      -- картинка как её отдала сеть
+    category    TEXT,                      -- раздел каталога сети, как она его назвала
     product_id  INTEGER REFERENCES products(id),
     first_seen  TEXT NOT NULL DEFAULT (datetime('now')),
     last_seen   TEXT NOT NULL DEFAULT (datetime('now')),

@@ -522,4 +522,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataRefreshingBody =>
       'Some prices are not verified yet. Check back shortly';
+
+  @override
+  String get catalogTitle => 'Catalogue';
+
+  @override
+  String get catalogOpen => 'Browse a store catalogue';
+
+  @override
+  String get catalogAllCategories => 'All';
+
+  @override
+  String get catalogEmpty => 'No products in this section';
+
+  @override
+  String get catalogPickStore => 'Pick a store';
 }

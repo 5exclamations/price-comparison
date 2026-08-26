@@ -70,6 +70,7 @@ def ensure_columns(con):
     for table, column, decl in (
         ('store_items', 'image_url', 'TEXT'),
         ('products', 'image_url', 'TEXT'),
+        ('store_items', 'category', 'TEXT'),
     ):
         have = {r['name'] for r in con.execute(f'PRAGMA table_info({table})')}
         if column not in have:
@@ -94,14 +95,15 @@ def cmd_init():
     print('БД создана:', DB)
 
 
-def upsert_item(con, chain_id, store_id, sku, ean, raw, brand=None, image=None):
+def upsert_item(con, chain_id, store_id, sku, ean, raw, brand=None, image=None,
+                category=None):
     kind = ean_kind(ean)
     uv, ut, pack = parse_unit(raw)
     con.execute("""
         INSERT INTO store_items (chain_id, store_id, chain_sku, ean, ean_kind,
                                  raw_name, norm_name, brand, unit_value, unit_type,
-                                 pack, image_url)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                                 pack, image_url, category)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         ON CONFLICT (chain_id, COALESCE(store_id, 0), chain_sku) DO UPDATE SET
             last_seen = datetime('now'),
             ean       = COALESCE(excluded.ean, store_items.ean),
@@ -110,9 +112,10 @@ def upsert_item(con, chain_id, store_id, sku, ean, raw, brand=None, image=None):
             -- COALESCE, а не присваивание: если сеть в этот прогон картинку не
             -- отдала (перебои на их CDN, пустой ответ), лучше показать вчерашнюю,
             -- чем обнулить и уронить карточку на плашку.
-            image_url = COALESCE(excluded.image_url, store_items.image_url)
+            image_url = COALESCE(excluded.image_url, store_items.image_url),
+            category  = COALESCE(excluded.category, store_items.category)
     """, (chain_id, store_id, sku, ean or None, kind, raw, norm_name(raw),
-          brand, uv, ut, pack, image or None))
+          brand, uv, ut, pack, image or None, category or None))
     r = con.execute("""SELECT id FROM store_items
                        WHERE chain_id=? AND chain_sku=?
                          AND (store_id IS ? OR store_id=?)""",
@@ -205,7 +208,8 @@ def cmd_bazarstore(limit=None):
         for v in p['variants']:
             ean = (p.get('_bc') or {}).get(v['id'], '')
             iid = upsert_item(con, cid, None, str(v['sku'] or v['id']), ean,
-                              p['title'], p.get('vendor'), _shopify_image(p, v))
+                              p['title'], p.get('vendor'), _shopify_image(p, v),
+                              (p.get('product_type') or '').strip() or None)
             price = int(round(float(v['price']) * 100))
             old = v.get('compare_at_price')
             old = int(round(float(old) * 100)) if old and float(old) > 0 else None
@@ -287,7 +291,7 @@ def cmd_wolt(path='raw/wolt_all.json'):
                 # «Qələm Pensan 1010»: разные товары, один ключ, ложная смена цены.
                 sku = it.get('id') or norm_name(it['name'])[:60]
                 iid = upsert_item(con, cid, sid, sku, it.get('gtin') or '', it['name'],
-                                  None, it.get('image'))
+                                  None, it.get('image'), it.get('cat'))
                 if add_price(con, iid, int(it['price']), it.get('old'),
                              it.get('available', True), 'wolt_api', it.get('promo_until')):
                     n_new += 1
@@ -322,7 +326,7 @@ def cmd_bravo(path=None):
             m = re.search(r'(\d{3,6})\s*$', it['name'].strip())
             sku = m.group(1) if m else norm_name(it['name'])[:60]
             iid = upsert_item(con, cid, sid, sku, it.get('gtin') or '', it['name'],
-                              None, it.get('image'))
+                              None, it.get('image'), it.get('cat'))
             if add_price(con, iid, int(it['price']), None, 1, 'wolt_api'):
                 n_new += 1
     con.commit()
@@ -391,6 +395,37 @@ def cmd_match():
                        VALUES (?,?,'rule',0.75)""", (r['id'], pid))
         exist_n += 1
 
+    # 1c. тот же приём, но ключом, терпимым к пробелу внутри бренда.
+    #
+    # «Azərsüd Süd 3.2% 1l» и «Azər Süd 3.2% 1 l» — одно молоко, но отпечатки
+    # у них разные, а похожесть 0.62 при пороге 0.82. См. fingerprint.loose_key.
+    #
+    # Ключ грубее точного, поэтому склеиваем ТОЛЬКО между разными сетями:
+    # внутри одной сети одинаковое название почти всегда значит разный
+    # артикул — у «DONEGAL DARAQ» их два десятка подряд, и все они разные.
+    loose = {}
+    for r in con.execute("""SELECT si.product_id, si.raw_name, si.chain_id
+                            FROM store_items si
+                            WHERE si.product_id IS NOT NULL""").fetchall():
+        k = fingerprint.loose_key(r['raw_name'])
+        if k is None:
+            continue
+        rec = loose.setdefault(k, {'pid': r['product_id'], 'chains': set()})
+        rec['chains'].add(r['chain_id'])
+
+    loose_n = 0
+    for r in con.execute("""SELECT id, raw_name, chain_id FROM store_items
+                            WHERE product_id IS NULL""").fetchall():
+        k = fingerprint.loose_key(r['raw_name'])
+        rec = loose.get(k) if k is not None else None
+        if rec is None or r['chain_id'] in rec['chains']:
+            continue
+        con.execute('UPDATE store_items SET product_id=? WHERE id=?', (rec['pid'], r['id']))
+        con.execute("""INSERT OR IGNORE INTO matches (store_item_id, product_id, method, confidence)
+                       VALUES (?,?,'rule',0.7)""", (r['id'], rec['pid']))
+        rec['chains'].add(r['chain_id'])
+        loose_n += 1
+
     # 2. отпечаток по названию: слова + фасовка + жирность.
     # Это единственный способ сравнить весовые товары и сети без штрихкодов.
     rows = con.execute("""SELECT id, raw_name, brand, unit_value, unit_type, chain_id
@@ -436,11 +471,106 @@ def cmd_match():
                        VALUES (?,?,'rule',0.5)""", (r['id'], pid))
         rule_n += 1
 
+    merge_loose_duplicates(con)
     refresh_product_images(con)
+    refresh_product_categories(con)
 
     con.commit()
     print(f'  сматчено по EAN: {ean_n}, приклеено к готовым карточкам: {exist_n}, '
+          f'из них через пробел в бренде: {loose_n}, '
           f'по отпечатку названия: {fp_n}, без пары: {rule_n}')
+
+
+def merge_loose_duplicates(con):
+    """Схлопывает карточки, которые различаются только пробелом внутри бренда.
+
+    Этапы 1b и 1c приклеивают к готовой карточке позицию БЕЗ пары. Но дубль
+    чаще возникает иначе: обе карточки уже созданы — например, обе на шаге по
+    EAN, потому что сети присвоили товару разные штрихкоды. Такую пару ни один
+    из прошлых шагов не увидит, её надо сливать отдельно.
+
+    Правила, без которых это было бы опасно:
+
+      * группа обязана охватывать РАЗНЫЕ сети. Одинаковое название внутри одной
+        сети — почти всегда разный артикул («DONEGAL DARAQ» их два десятка);
+      * в группе не должно быть ДВУХ разных штрихкодов. Разные EAN — это разные
+        товары, и штрихкод здесь главнее похожести названия;
+      * карантинные карточки не трогаем вовсе.
+
+    Выживает карточка со штрихкодом, при прочих равных — с меньшим id: он
+    стабильнее между прогонами.
+    """
+    groups = {}
+    for r in con.execute("""SELECT p.id, p.name, p.ean
+                            FROM products p WHERE p.quarantined = 0""").fetchall():
+        k = fingerprint.loose_key(r['name'])
+        if k is not None:
+            groups.setdefault(k, []).append(r)
+
+    merged = 0
+    for rows in groups.values():
+        if len(rows) < 2:
+            continue
+
+        eans = {r['ean'] for r in rows if r['ean']}
+        if len(eans) > 1:
+            continue                       # разные штрихкоды — разные товары
+
+        ids = [r['id'] for r in rows]
+        marks = ','.join('?' * len(ids))
+        chains = {c for (c,) in con.execute(
+            f'SELECT DISTINCT chain_id FROM store_items WHERE product_id IN ({marks})', ids)}
+        if len(chains) < 2:
+            continue                       # дубль внутри одной сети не трогаем
+
+        winner = next((r['id'] for r in rows if r['ean']), min(ids))
+        losers = [i for i in ids if i != winner]
+        for lid in losers:
+            # Порядок важен: на products смотрят четыре таблицы, и удалять
+            # карточку можно только когда на неё не ссылается ни одна.
+            con.execute('UPDATE store_items SET product_id=? WHERE product_id=?', (winner, lid))
+            con.execute('UPDATE OR IGNORE matches SET product_id=? WHERE product_id=?', (winner, lid))
+            con.execute('DELETE FROM matches WHERE product_id=?', (lid,))
+            con.execute('UPDATE match_queue SET candidate_id=? WHERE candidate_id=?', (winner, lid))
+            # audit_log — это история карантина проигравшей карточки. Переносить
+            # её на выжившую значит приписать ей чужие претензии, поэтому
+            # удаляем: сама карточка перестаёт существовать.
+            con.execute('DELETE FROM audit_log WHERE product_id=?', (lid,))
+            con.execute('DELETE FROM products WHERE id=?', (lid,))
+            merged += 1
+
+    print(f'  схлопнуто дублей карточек: {merged}')
+    return merged
+
+
+def refresh_product_categories(con):
+    """Проставляет products.category по разделам, в которых товар лежит у сетей.
+
+    Берём САМЫЙ ЧАСТЫЙ раздел среди позиций товара, а не первый попавшийся:
+    сети раскладывают один товар по-разному, и «Süd» из трёх сетей против
+    «Səhər yeməyi» из одной — это молочный отдел, а не завтраки.
+
+    Как и с картинками, отдельным проходом после матчинга и только там, где
+    пусто: у карточки, к которой человек руками поправил категорию, отбирать
+    её не за чем.
+    """
+    cur = con.execute("""
+        UPDATE products SET category = (
+            SELECT si.category FROM store_items si
+             WHERE si.product_id = products.id AND si.category IS NOT NULL
+             GROUP BY si.category
+             ORDER BY count(*) DESC, si.category
+             LIMIT 1
+        )
+        WHERE category IS NULL
+          AND EXISTS (SELECT 1 FROM store_items si
+                       WHERE si.product_id = products.id AND si.category IS NOT NULL)
+    """)
+    total = con.execute('SELECT count(*) c FROM products').fetchone()['c']
+    withcat = con.execute(
+        'SELECT count(*) c FROM products WHERE category IS NOT NULL').fetchone()['c']
+    print(f'  категории: проставлено {cur.rowcount}, всего с категорией '
+          f'{withcat}/{total} ({100.0 * withcat / total if total else 0:.1f}%)')
 
 
 def refresh_product_images(con):

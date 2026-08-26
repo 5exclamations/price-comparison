@@ -162,6 +162,41 @@ class CatalogRepository {
     return [for (final c in response.items) c.code];
   }
 
+  /// Каталог сети или точки. Курсорная, как и всё остальное.
+  ///
+  /// Кеша здесь нет намеренно. Лента акций и поиск кешируются, потому что их
+  /// открывают в дороге и без сети; каталог — это осознанный обход
+  /// ассортимента, и показывать по нему вчерашний срез значит врать о наличии.
+  Future<({List<ProductSummary> items, String? cursor, bool hasMore})> catalog({
+    int? chainId,
+    int? storeId,
+    String? category,
+    String? cursor,
+    int limit = 20,
+  }) async {
+    final response = await api.catalog(
+      chainId: chainId,
+      storeId: storeId,
+      category: category,
+      cursor: cursor,
+      limit: limit,
+    );
+    return (
+      items: response.items.map(toProductSummary).toList(),
+      cursor: response.nextCursor,
+      hasMore: response.hasMore,
+    );
+  }
+
+  /// Разделы, в которых у этой сети или точки реально есть товары.
+  Future<List<String>> catalogCategories({int? chainId, int? storeId}) async {
+    final response = await api.catalogCategories(
+      chainId: chainId,
+      storeId: storeId,
+    );
+    return [for (final c in response.items) c.code];
+  }
+
   Future<PriceHistory> history({
     required int productId,
     int days = 30,

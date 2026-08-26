@@ -136,5 +136,10 @@
   "receiptsUploaded": "{count, plural, one{{count} receipt} other{{count} receipts}}",
   "pointsTitle": "Your points",
   "dataRefreshingTitle": "Data is refreshing",
-  "dataRefreshingBody": "Some prices are not verified yet. Check back shortly"
+  "dataRefreshingBody": "Some prices are not verified yet. Check back shortly",
+  "catalogTitle": "Catalogue",
+  "catalogOpen": "Browse a store catalogue",
+  "catalogAllCategories": "All",
+  "catalogEmpty": "No products in this section",
+  "catalogPickStore": "Pick a store"
 }

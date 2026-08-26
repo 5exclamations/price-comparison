@@ -8,6 +8,7 @@ import 'dto/history_dto.dart';
 import 'dto/basket_prices_dto.dart';
 import 'dto/product_card_dto.dart';
 import 'dto/receipt_dto.dart';
+import 'dto/catalog_response_dto.dart';
 import 'dto/search_response_dto.dart';
 import 'dto/store_dto.dart';
 import 'dto/watch_dto.dart';
@@ -58,6 +59,27 @@ abstract class QiymetApi {
   /// не по чему, и клиент прячет фильтр.
   @GET('/v1/categories')
   Future<CategoriesResponseDto> categories();
+
+  /// Каталог: что вообще продаётся у сети или в точке.
+  ///
+  /// chainId/storeId — ЧЕЙ ассортимент показывать, storeIdSelected — чью цену
+  /// считать применимой. Это разные вещи: можно смотреть каталог Bravo, держа
+  /// выбранной точку Araz.
+  @GET('/v1/catalog')
+  Future<CatalogResponseDto> catalog({
+    @Query('chain_id') int? chainId,
+    @Query('store_id') int? storeId,
+    @Query('category') String? category,
+    @Query('limit') int? limit,
+    @Query('cursor') String? cursor,
+  });
+
+  /// Разделы, в которых у этой сети или точки реально есть товары.
+  @GET('/v1/catalog/categories')
+  Future<CategoriesResponseDto> catalogCategories({
+    @Query('chain_id') int? chainId,
+    @Query('store_id') int? storeId,
+  });
 
   /// Магазины. При заданной точке сервер добавит расстояние.
   ///

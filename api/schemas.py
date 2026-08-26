@@ -128,6 +128,20 @@ class ProductCard(BaseModel):
     )
 
 
+# ---------- /v1/catalog ----------
+
+
+class CatalogResponse(Page):
+    """Каталог отдаёт те же карточки, что и поиск, но без его полей.
+
+    query/normalized_query/matched_by в SearchResponse существуют, чтобы
+    объяснить, ПОЧЕМУ нашлось именно это. В каталоге объяснять нечего:
+    человек не искал, он смотрит раздел целиком.
+    """
+
+    items: list[SearchItem]
+
+
 # ---------- /v1/deals ----------
 
 

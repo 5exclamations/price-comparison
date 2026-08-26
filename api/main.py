@@ -12,6 +12,7 @@ from .cache import close_cache
 from .db import dispose_engine
 from .http import ETagMiddleware
 from .routers import (
+    catalog,
     categories,
     deals,
     prices,
@@ -54,6 +55,7 @@ app.add_middleware(ETagMiddleware)
 
 for module in (
     search,
+    catalog,
     product,
     deals,
     stores,

@@ -540,4 +540,19 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get dataRefreshingBody =>
       'Часть цен ещё не проверена. Загляните чуть позже';
+
+  @override
+  String get catalogTitle => 'Каталог';
+
+  @override
+  String get catalogOpen => 'Посмотреть каталог магазина';
+
+  @override
+  String get catalogAllCategories => 'Все';
+
+  @override
+  String get catalogEmpty => 'В этом разделе товаров нет';
+
+  @override
+  String get catalogPickStore => 'Выберите магазин';
 }

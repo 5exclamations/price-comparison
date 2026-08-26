@@ -136,5 +136,10 @@
   "receiptsUploaded": "{count, plural, one{{count} чек} few{{count} чека} many{{count} чеков} other{{count} чека}}",
   "pointsTitle": "Ваши баллы",
   "dataRefreshingTitle": "Данные обновляются",
-  "dataRefreshingBody": "Часть цен ещё не проверена. Загляните чуть позже"
+  "dataRefreshingBody": "Часть цен ещё не проверена. Загляните чуть позже",
+  "catalogTitle": "Каталог",
+  "catalogOpen": "Посмотреть каталог магазина",
+  "catalogAllCategories": "Все",
+  "catalogEmpty": "В этом разделе товаров нет",
+  "catalogPickStore": "Выберите магазин"
 }

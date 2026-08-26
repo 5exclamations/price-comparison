@@ -1,4 +1,4 @@
-"""Разовый добор картинок для уже собранной базы.
+"""Разовый добор картинок и категорий для уже собранной базы.
 
 Обычный прогон пайплайна картинки проставляет сам: upsert_item() пишет
 image_url, cmd_match() переносит её в products. Этот скрипт нужен там, где
@@ -49,8 +49,8 @@ def pg_dsn() -> str:
     return url.replace("postgresql+psycopg://", "postgresql://")
 
 
-def wolt_images(slug: str) -> dict[str, str]:
-    """{item_id: image_url} для одной точки."""
+def wolt_images(slug: str) -> dict[str, tuple[str | None, str | None]]:
+    """{item_id: (image_url, category)} для одной точки."""
     base = wolt.BASE.format(v=slug)
     a = wolt.get(base)
     if not a:
@@ -61,19 +61,22 @@ def wolt_images(slug: str) -> dict[str, str]:
         r = wolt.get(base + "/categories/slug/" + urllib.parse.quote(c["slug"], safe=""))
         return r.get("items", []) if r else []
 
-    out: dict[str, str] = {}
+    def one_with_cat(c):
+        return c["name"], one(c)
+
+    out: dict[str, tuple[str | None, str | None]] = {}
     with ThreadPoolExecutor(6) as ex:
-        for items in ex.map(one, lv):
+        for cat, items in ex.map(one_with_cat, lv):
             for it in items:
-                url = wolt._image(it)
-                if url and it.get("id"):
-                    out[str(it["id"])] = url
+                if not it.get("id"):
+                    continue
+                out[str(it["id"])] = (wolt._image(it), cat)
     return out
 
 
-def bazarstore_images() -> dict[str, str]:
-    """{variant_sku: image_url} по всему каталогу Shopify."""
-    out: dict[str, str] = {}
+def bazarstore_images() -> dict[str, tuple[str | None, str | None]]:
+    """{variant_sku: (image_url, product_type)} по всему каталогу Shopify."""
+    out: dict[str, tuple[str | None, str | None]] = {}
     page = 1
     while True:
         u = f"https://bazarstore.az/products.json?limit=250&page={page}"
@@ -97,32 +100,47 @@ def bazarstore_images() -> dict[str, str]:
                         if (img or {}).get("src"):
                             src = img["src"]
                             break
-                if src:
-                    out[str(v.get("sku") or v.get("id"))] = src
+                cat = (p.get("product_type") or "").strip() or None
+                if src or cat:
+                    out[str(v.get("sku") or v.get("id"))] = (src, cat)
         page += 1
     return out
 
 
-def apply(conn, chain_code: str, mapping: dict[str, str], dry: bool) -> int:
-    """Пишет image_url тем позициям сети, у которых его ещё нет."""
+def apply(conn, chain_code: str, mapping, dry: bool) -> tuple[int, int]:
+    """Пишет image_url и category тем позициям сети, у которых их ещё нет."""
     if not mapping:
-        return 0
+        return 0, 0
     with conn.cursor() as cur:
         cur.execute("SELECT id FROM chains WHERE code = %s", (chain_code,))
         row = cur.fetchone()
         if not row:
-            return 0
+            return 0, 0
         cid = row[0]
-        # Только там, где пусто: свежая картинка из прогона важнее нашей.
         cur.execute(
-            "SELECT id, chain_sku FROM store_items "
-            "WHERE chain_id = %s AND image_url IS NULL", (cid,))
+            "SELECT id, chain_sku, image_url IS NULL, category IS NULL "
+            "FROM store_items "
+            "WHERE chain_id = %s AND (image_url IS NULL OR category IS NULL)", (cid,))
         pending = cur.fetchall()
-        pairs = [(mapping[sku], sid) for sid, sku in pending if sku in mapping]
-        if dry or not pairs:
-            return len(pairs)
-        cur.executemany("UPDATE store_items SET image_url = %s WHERE id = %s", pairs)
-    return len(pairs)
+
+        imgs, cats = [], []
+        for sid, sku, need_img, need_cat in pending:
+            got = mapping.get(sku)
+            if not got:
+                continue
+            url, cat = got
+            if need_img and url:
+                imgs.append((url, sid))
+            if need_cat and cat:
+                cats.append((cat, sid))
+
+        if dry:
+            return len(imgs), len(cats)
+        if imgs:
+            cur.executemany("UPDATE store_items SET image_url = %s WHERE id = %s", imgs)
+        if cats:
+            cur.executemany("UPDATE store_items SET category = %s WHERE id = %s", cats)
+    return len(imgs), len(cats)
 
 
 def main() -> int:
@@ -146,15 +164,17 @@ def main() -> int:
         if want and code not in want:
             continue
         imgs = wolt_images(slug)
-        n = apply(conn, code, imgs, args.dry_run)
-        total += n
-        print(f"  {code:12} {slug:34} картинок у источника {len(imgs):5}, проставлено {n}")
+        ni, nc = apply(conn, code, imgs, args.dry_run)
+        total += ni
+        print(f"  {code:12} {slug:34} у источника {len(imgs):5}, "
+              f"картинок {ni:5}, категорий {nc:5}")
 
     if not want or "bazarstore" in want:
         imgs = bazarstore_images()
-        n = apply(conn, "bazarstore", imgs, args.dry_run)
-        total += n
-        print(f"  {'bazarstore':12} {'shopify':34} картинок у источника {len(imgs):5}, проставлено {n}")
+        ni, nc = apply(conn, "bazarstore", imgs, args.dry_run)
+        total += ni
+        print(f"  {'bazarstore':12} {'shopify':34} у источника {len(imgs):5}, "
+              f"картинок {ni:5}, категорий {nc:5}")
 
     # Перенос на карточку — той же логикой, что в пайплайне: только пустым.
     if not args.dry_run:
@@ -168,18 +188,34 @@ def main() -> int:
                  WHERE sub.product_id = p.id AND p.image_url IS NULL
             """)
             moved = cur.rowcount
+            # Категория — самая частая среди позиций товара, а не первая
+            # попавшаяся: сети раскладывают один товар по разным разделам.
+            cur.execute("""
+                UPDATE products p SET category = sub.category
+                  FROM (SELECT DISTINCT ON (product_id) product_id, category
+                          FROM (SELECT product_id, category, count(*) AS n
+                                  FROM store_items
+                                 WHERE product_id IS NOT NULL AND category IS NOT NULL
+                                 GROUP BY product_id, category) x
+                         ORDER BY product_id, n DESC, category) sub
+                 WHERE sub.product_id = p.id AND p.category IS NULL
+            """)
+            moved_cat = cur.rowcount
         conn.commit()
-        print(f"  на карточки перенесено: {moved}")
+        print(f"  на карточки перенесено: картинок {moved}, категорий {moved_cat}")
     else:
         conn.rollback()
         print("  --dry-run: ничего не записано")
 
     with conn.cursor() as cur:
-        cur.execute("SELECT count(*) FILTER (WHERE image_url IS NOT NULL), count(*) "
+        cur.execute("SELECT count(*) FILTER (WHERE image_url IS NOT NULL), "
+                    "count(*) FILTER (WHERE category IS NOT NULL), count(*) "
                     "FROM products WHERE quarantined = 0")
-        withimg, tot = cur.fetchone()
-    print(f"\nкарточек с картинкой: {withimg}/{tot} "
+        withimg, withcat, tot = cur.fetchone()
+    print(f"\nкарточек с картинкой:  {withimg}/{tot} "
           f"({100.0 * withimg / tot if tot else 0:.1f}%)")
+    print(f"карточек с категорией: {withcat}/{tot} "
+          f"({100.0 * withcat / tot if tot else 0:.1f}%)")
     conn.close()
     return 0
 
