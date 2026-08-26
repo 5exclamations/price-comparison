@@ -221,6 +221,66 @@ jobs:
             app/build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
 
+  # ----------------------------------------------------- сборка под iOS
+  build-ios:
+    name: Сборка iOS (debug)
+    # macos-раннер, потому что Xcode есть только там. Он дороже ubuntu по
+    # минутам, поэтому здесь ровно одна сборка и никаких прогонов на
+    # симуляторе: они стоят столько же, а ловят то же, что эмулятор Android.
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Зависимости
+        run: flutter pub get
+
+      - name: Кодогенерация
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # CocoaPods на macos-раннере предустановлен. Локально его может не быть,
+      # и тогда сборка падает на `pod install` — это не поломка проекта.
+      - name: Версии инструментов
+        run: |
+          pod --version
+          xcodebuild -version
+
+      - name: Сборка
+        # --no-codesign: сертификата разработчика в CI нет и быть не должно.
+        # Проверяется то же, ради чего сюда пришли: что плагины подтянулись
+        # через CocoaPods, что Info.plist и локализованные InfoPlist.strings
+        # собираются, что Swift-мост компилируется.
+        run: flutter build ios --debug --no-codesign
+
+      - name: Разрешения на месте
+        # Приложение без объяснений к камере и геолокации App Store отклонит,
+        # а увидеть это иначе как в собранном бандле нельзя: строки едут
+        # из InfoPlist.strings, а не из исходного Info.plist.
+        run: |
+          plist=build/ios/iphoneos/Runner.app/Info.plist
+          /usr/libexec/PlistBuddy -c "Print :NSCameraUsageDescription" "$plist"
+          /usr/libexec/PlistBuddy -c "Print :NSLocationWhenInUseUsageDescription" "$plist"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$plist"
+          for lang in az ru en; do
+            test -f "build/ios/iphoneos/Runner.app/$lang.lproj/InfoPlist.strings" \
+              || { echo "нет перевода объяснений для $lang"; exit 1; }
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-debug
+          path: app/build/ios/iphoneos/Runner.app
+          if-no-files-found: error
+
   # ------------------------------------------- прогон на эмуляторе Android
   integration-android:
     name: Основной путь на эмуляторе
@@ -319,7 +379,7 @@ jobs:
   # --------------------------------------------------------------- деплой
   deploy:
     name: Деплой
-    needs: [data, client, pipeline, build-android, integration-android]
+    needs: [data, client, pipeline, build-android, integration-android, build-ios]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
