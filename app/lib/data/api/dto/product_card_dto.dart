@@ -11,6 +11,7 @@ abstract class ProductCardDto with _$ProductCardDto {
     required String name,
     String? brand,
     String? ean,
+    @JsonKey(name: 'image_url') String? imageUrl,
     @JsonKey(name: 'unit_value') double? unitValue,
     @JsonKey(name: 'unit_type') String? unitType,
     required List<ChainPriceDto> prices,

@@ -5,6 +5,7 @@ import '../../../design/tokens/spacing.dart';
 import '../../../design/tokens/typography.dart';
 import '../../../design/widgets/observed_at_text.dart';
 import '../../../design/widgets/price_text.dart';
+import '../../../design/widgets/product_thumb.dart';
 import '../../../domain/models/deal.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -44,7 +45,7 @@ class DealCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _Photo(),
+              ProductThumb(name: deal.name, imageUrl: deal.imageUrl),
               const SizedBox(width: Spacing.md),
               Expanded(
                 child: Column(
@@ -131,55 +132,6 @@ class DealCard extends StatelessWidget {
     final store = deal.storeName;
     if (store == null || store.isEmpty) return deal.chainCode;
     return '${deal.chainCode} · $store';
-  }
-}
-
-/// Место под фото.
-///
-/// Картинок в данных сейчас нет: их не хранит ни схема, ни API, и коннекторы
-/// их не собирают. Поэтому вместо серой заглушки в полкарточки — компактная
-/// иконка, а вёрстка не рассыплется, когда картинки появятся.
-class _Photo extends StatelessWidget {
-  // Ссылку сюда пока никто не передаёт: картинок нет ни в схеме, ни в API,
-  // ни у коннекторов. Ветка с Image.network оставлена сознательно — когда
-  // картинки появятся, менять придётся одно место, а не вёрстку карточки.
-  // ignore: unused_element_parameter
-  const _Photo({this.url});
-
-  final String? url;
-
-  static const _size = 56.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    if (url == null || url!.isEmpty) {
-      return Container(
-        width: _size,
-        height: _size,
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(Radii.sm),
-        ),
-        child: Icon(
-          Icons.shopping_basket_outlined,
-          size: 24,
-          color: scheme.outline,
-        ),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Radii.sm),
-      child: Image.network(
-        url!,
-        width: _size,
-        height: _size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const _Photo(),
-      ),
-    );
   }
 }
 

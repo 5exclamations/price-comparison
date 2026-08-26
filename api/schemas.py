@@ -33,6 +33,14 @@ class SearchItem(BaseModel):
     name: str
     brand: str | None
     ean: str | None
+    image_url: str | None = Field(
+        None,
+        description=(
+            "Картинка товара. null примерно у 2% карточек: у сети её нет, "
+            "и подставить нечего. Клиент обязан нарисовать плашку сам — "
+            "заглушки с нашего домена тут не будет"
+        ),
+    )
     unit_value: float | None
     unit_type: str | None = Field(
         None, description="g / ml / pcs / kg_bulk. У kg_bulk цена за килограмм"
@@ -106,6 +114,7 @@ class ProductCard(BaseModel):
     name: str
     brand: str | None
     ean: str | None
+    image_url: str | None = Field(None, description="См. SearchItem.image_url")
     unit_value: float | None
     unit_type: str | None
 
@@ -134,6 +143,7 @@ class Deal(BaseModel):
     name: str
     brand: str | None
     ean: str | None
+    image_url: str | None = Field(None, description="См. SearchItem.image_url")
 
     chain_code: str
     store_id: int | None

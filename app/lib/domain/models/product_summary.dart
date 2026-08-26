@@ -13,6 +13,10 @@ abstract class ProductSummary with _$ProductSummary {
     required String name,
     String? brand,
     String? ean,
+    /// Картинка товара. null примерно у 2% карточек — у сети её нет.
+    /// Показывать через ProductThumb: он рисует плашку, когда ссылки нет
+    /// или она не загрузилась.
+    String? imageUrl,
 
     /// Фасовка: число и единица. Нужны вместе — «250» без «g» бессмысленно,
     /// а у kg_bulk числа нет вовсе, там цена за килограмм.

@@ -8,6 +8,7 @@ import '../../../design/widgets/observed_at_text.dart';
 import '../../../design/widgets/packaging_text.dart';
 import '../../../design/widgets/price_sparkline.dart';
 import '../../../design/widgets/price_text.dart';
+import '../../../design/widgets/product_thumb.dart';
 import '../../../domain/models/packaging.dart';
 import '../../../domain/models/product_card.dart';
 import '../../../l10n/app_localizations.dart';
@@ -74,6 +75,18 @@ class _Card extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(Spacing.lg),
       children: [
+        // Картинка крупнее, чем в ленте: здесь человек уже выбирает конкретный
+        // товар, и разглядеть упаковку важнее, чем уместить больше строк.
+        // Но не во весь экран: цены — то, ради чего сюда пришли, и уводить их
+        // за нижний край ради картинки нельзя.
+        Center(
+          child: ProductThumb(
+            name: card.name,
+            imageUrl: card.imageUrl,
+            size: 128,
+          ),
+        ),
+        const SizedBox(height: Spacing.lg),
         Text(card.name, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: Spacing.sm),
         Wrap(

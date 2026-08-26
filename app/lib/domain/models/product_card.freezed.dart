@@ -318,7 +318,10 @@ as bool,
 /// @nodoc
 mixin _$ProductCard {
 
- int get productId; String get name; String? get brand; String? get ean; double? get unitValue; String? get unitType; List<ChainPrice> get prices; int get chainsCount; int? get bestPriceMinor; String? get bestPriceChain;/// Коды сетей, чью цену нельзя показать без выбора магазина.
+ int get productId; String get name; String? get brand; String? get ean;/// Картинка товара. null примерно у 2% карточек — у сети её нет.
+/// Показывать через ProductThumb: он рисует плашку, когда ссылки нет
+/// или она не загрузилась.
+ String? get imageUrl; double? get unitValue; String? get unitType; List<ChainPrice> get prices; int get chainsCount; int? get bestPriceMinor; String? get bestPriceChain;/// Коды сетей, чью цену нельзя показать без выбора магазина.
  List<String> get needsStoreSelection;
 /// Create a copy of ProductCard
 /// with the given fields replaced by the non-null parameter values.
@@ -330,16 +333,16 @@ $ProductCardCopyWith<ProductCard> get copyWith => _$ProductCardCopyWithImpl<Prod
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductCard&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other.prices, prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other.needsStoreSelection, needsStoreSelection));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductCard&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other.prices, prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other.needsStoreSelection, needsStoreSelection));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,unitValue,unitType,const DeepCollectionEquality().hash(prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(needsStoreSelection));
+int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,imageUrl,unitValue,unitType,const DeepCollectionEquality().hash(prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(needsStoreSelection));
 
 @override
 String toString() {
-  return 'ProductCard(productId: $productId, name: $name, brand: $brand, ean: $ean, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
+  return 'ProductCard(productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
 }
 
 
@@ -350,7 +353,7 @@ abstract mixin class $ProductCardCopyWith<$Res>  {
   factory $ProductCardCopyWith(ProductCard value, $Res Function(ProductCard) _then) = _$ProductCardCopyWithImpl;
 @useResult
 $Res call({
- int productId, String name, String? brand, String? ean, double? unitValue, String? unitType, List<ChainPrice> prices, int chainsCount, int? bestPriceMinor, String? bestPriceChain, List<String> needsStoreSelection
+ int productId, String name, String? brand, String? ean, String? imageUrl, double? unitValue, String? unitType, List<ChainPrice> prices, int chainsCount, int? bestPriceMinor, String? bestPriceChain, List<String> needsStoreSelection
 });
 
 
@@ -367,12 +370,13 @@ class _$ProductCardCopyWithImpl<$Res>
 
 /// Create a copy of ProductCard
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
   return _then(_self.copyWith(
 productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,unitValue: freezed == unitValue ? _self.unitValue : unitValue // ignore: cast_nullable_to_non_nullable
 as double?,unitType: freezed == unitType ? _self.unitType : unitType // ignore: cast_nullable_to_non_nullable
 as String?,prices: null == prices ? _self.prices : prices // ignore: cast_nullable_to_non_nullable
@@ -465,10 +469,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int productId,  String name,  String? brand,  String? ean,  double? unitValue,  String? unitType,  List<ChainPrice> prices,  int chainsCount,  int? bestPriceMinor,  String? bestPriceChain,  List<String> needsStoreSelection)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int productId,  String name,  String? brand,  String? ean,  String? imageUrl,  double? unitValue,  String? unitType,  List<ChainPrice> prices,  int chainsCount,  int? bestPriceMinor,  String? bestPriceChain,  List<String> needsStoreSelection)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProductCard() when $default != null:
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
   return orElse();
 
 }
@@ -486,10 +490,10 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int productId,  String name,  String? brand,  String? ean,  double? unitValue,  String? unitType,  List<ChainPrice> prices,  int chainsCount,  int? bestPriceMinor,  String? bestPriceChain,  List<String> needsStoreSelection)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int productId,  String name,  String? brand,  String? ean,  String? imageUrl,  double? unitValue,  String? unitType,  List<ChainPrice> prices,  int chainsCount,  int? bestPriceMinor,  String? bestPriceChain,  List<String> needsStoreSelection)  $default,) {final _that = this;
 switch (_that) {
 case _ProductCard():
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -506,10 +510,10 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int productId,  String name,  String? brand,  String? ean,  double? unitValue,  String? unitType,  List<ChainPrice> prices,  int chainsCount,  int? bestPriceMinor,  String? bestPriceChain,  List<String> needsStoreSelection)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int productId,  String name,  String? brand,  String? ean,  String? imageUrl,  double? unitValue,  String? unitType,  List<ChainPrice> prices,  int chainsCount,  int? bestPriceMinor,  String? bestPriceChain,  List<String> needsStoreSelection)?  $default,) {final _that = this;
 switch (_that) {
 case _ProductCard() when $default != null:
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
   return null;
 
 }
@@ -521,13 +525,17 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 
 
 class _ProductCard implements ProductCard {
-  const _ProductCard({required this.productId, required this.name, this.brand, this.ean, this.unitValue, this.unitType, required final  List<ChainPrice> prices, required this.chainsCount, this.bestPriceMinor, this.bestPriceChain, final  List<String> needsStoreSelection = const <String>[]}): _prices = prices,_needsStoreSelection = needsStoreSelection;
+  const _ProductCard({required this.productId, required this.name, this.brand, this.ean, this.imageUrl, this.unitValue, this.unitType, required final  List<ChainPrice> prices, required this.chainsCount, this.bestPriceMinor, this.bestPriceChain, final  List<String> needsStoreSelection = const <String>[]}): _prices = prices,_needsStoreSelection = needsStoreSelection;
   
 
 @override final  int productId;
 @override final  String name;
 @override final  String? brand;
 @override final  String? ean;
+/// Картинка товара. null примерно у 2% карточек — у сети её нет.
+/// Показывать через ProductThumb: он рисует плашку, когда ссылки нет
+/// или она не загрузилась.
+@override final  String? imageUrl;
 @override final  double? unitValue;
 @override final  String? unitType;
  final  List<ChainPrice> _prices;
@@ -560,16 +568,16 @@ _$ProductCardCopyWith<_ProductCard> get copyWith => __$ProductCardCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductCard&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other._prices, _prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other._needsStoreSelection, _needsStoreSelection));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductCard&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other._prices, _prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other._needsStoreSelection, _needsStoreSelection));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,unitValue,unitType,const DeepCollectionEquality().hash(_prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(_needsStoreSelection));
+int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,imageUrl,unitValue,unitType,const DeepCollectionEquality().hash(_prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(_needsStoreSelection));
 
 @override
 String toString() {
-  return 'ProductCard(productId: $productId, name: $name, brand: $brand, ean: $ean, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
+  return 'ProductCard(productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
 }
 
 
@@ -580,7 +588,7 @@ abstract mixin class _$ProductCardCopyWith<$Res> implements $ProductCardCopyWith
   factory _$ProductCardCopyWith(_ProductCard value, $Res Function(_ProductCard) _then) = __$ProductCardCopyWithImpl;
 @override @useResult
 $Res call({
- int productId, String name, String? brand, String? ean, double? unitValue, String? unitType, List<ChainPrice> prices, int chainsCount, int? bestPriceMinor, String? bestPriceChain, List<String> needsStoreSelection
+ int productId, String name, String? brand, String? ean, String? imageUrl, double? unitValue, String? unitType, List<ChainPrice> prices, int chainsCount, int? bestPriceMinor, String? bestPriceChain, List<String> needsStoreSelection
 });
 
 
@@ -597,12 +605,13 @@ class __$ProductCardCopyWithImpl<$Res>
 
 /// Create a copy of ProductCard
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
   return _then(_ProductCard(
 productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,unitValue: freezed == unitValue ? _self.unitValue : unitValue // ignore: cast_nullable_to_non_nullable
 as double?,unitType: freezed == unitType ? _self.unitType : unitType // ignore: cast_nullable_to_non_nullable
 as String?,prices: null == prices ? _self._prices : prices // ignore: cast_nullable_to_non_nullable

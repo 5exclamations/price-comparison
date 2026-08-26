@@ -6,6 +6,7 @@ import '../../../design/tokens/colors.dart';
 import '../../../design/tokens/spacing.dart';
 import '../../../design/widgets/observed_at_text.dart';
 import '../../../design/widgets/packaging_text.dart';
+import '../../../design/widgets/product_thumb.dart';
 import '../../../design/widgets/price_text.dart';
 import '../../../design/widgets/questionable_data_banner.dart';
 import '../../../design/widgets/stale_banner.dart';
@@ -199,6 +200,8 @@ class _ResultCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ProductThumb(name: item.name, imageUrl: item.imageUrl, size: 48),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -20,7 +20,7 @@ from ..schemas import (
 router = APIRouter()
 
 PRODUCT = """
-SELECT id, name, brand, ean, unit_value, unit_type, quarantined
+SELECT id, name, brand, ean, image_url, unit_value, unit_type, quarantined
 FROM products WHERE id = :pid
 """
 
@@ -103,6 +103,7 @@ async def product_card(
             name=row["name"],
             brand=row["brand"],
             ean=row["ean"],
+            image_url=row["image_url"],
             unit_value=row["unit_value"],
             unit_type=row["unit_type"],
             prices=[

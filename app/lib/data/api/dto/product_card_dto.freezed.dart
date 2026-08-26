@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProductCardDto {
 
-@JsonKey(name: 'product_id') int get productId; String get name; String? get brand; String? get ean;@JsonKey(name: 'unit_value') double? get unitValue;@JsonKey(name: 'unit_type') String? get unitType; List<ChainPriceDto> get prices;@JsonKey(name: 'chains_count') int get chainsCount;@JsonKey(name: 'best_price_minor') int? get bestPriceMinor;@JsonKey(name: 'best_price_chain') String? get bestPriceChain;@JsonKey(name: 'needs_store_selection') List<String> get needsStoreSelection;
+@JsonKey(name: 'product_id') int get productId; String get name; String? get brand; String? get ean;@JsonKey(name: 'image_url') String? get imageUrl;@JsonKey(name: 'unit_value') double? get unitValue;@JsonKey(name: 'unit_type') String? get unitType; List<ChainPriceDto> get prices;@JsonKey(name: 'chains_count') int get chainsCount;@JsonKey(name: 'best_price_minor') int? get bestPriceMinor;@JsonKey(name: 'best_price_chain') String? get bestPriceChain;@JsonKey(name: 'needs_store_selection') List<String> get needsStoreSelection;
 /// Create a copy of ProductCardDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ProductCardDtoCopyWith<ProductCardDto> get copyWith => _$ProductCardDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductCardDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other.prices, prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other.needsStoreSelection, needsStoreSelection));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductCardDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other.prices, prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other.needsStoreSelection, needsStoreSelection));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,unitValue,unitType,const DeepCollectionEquality().hash(prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(needsStoreSelection));
+int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,imageUrl,unitValue,unitType,const DeepCollectionEquality().hash(prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(needsStoreSelection));
 
 @override
 String toString() {
-  return 'ProductCardDto(productId: $productId, name: $name, brand: $brand, ean: $ean, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
+  return 'ProductCardDto(productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ProductCardDtoCopyWith<$Res>  {
   factory $ProductCardDtoCopyWith(ProductCardDto value, $Res Function(ProductCardDto) _then) = _$ProductCardDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType, List<ChainPriceDto> prices,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'needs_store_selection') List<String> needsStoreSelection
+@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType, List<ChainPriceDto> prices,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'needs_store_selection') List<String> needsStoreSelection
 });
 
 
@@ -65,12 +65,13 @@ class _$ProductCardDtoCopyWithImpl<$Res>
 
 /// Create a copy of ProductCardDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
   return _then(_self.copyWith(
 productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,unitValue: freezed == unitValue ? _self.unitValue : unitValue // ignore: cast_nullable_to_non_nullable
 as double?,unitType: freezed == unitType ? _self.unitType : unitType // ignore: cast_nullable_to_non_nullable
 as String?,prices: null == prices ? _self.prices : prices // ignore: cast_nullable_to_non_nullable
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType,  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'needs_store_selection')  List<String> needsStoreSelection)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType,  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'needs_store_selection')  List<String> needsStoreSelection)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProductCardDto() when $default != null:
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType,  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'needs_store_selection')  List<String> needsStoreSelection)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType,  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'needs_store_selection')  List<String> needsStoreSelection)  $default,) {final _that = this;
 switch (_that) {
 case _ProductCardDto():
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType,  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'needs_store_selection')  List<String> needsStoreSelection)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType,  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'needs_store_selection')  List<String> needsStoreSelection)?  $default,) {final _that = this;
 switch (_that) {
 case _ProductCardDto() when $default != null:
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.prices,_that.chainsCount,_that.bestPriceMinor,_that.bestPriceChain,_that.needsStoreSelection);case _:
   return null;
 
 }
@@ -219,13 +220,14 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 @JsonSerializable()
 
 class _ProductCardDto implements ProductCardDto {
-  const _ProductCardDto({@JsonKey(name: 'product_id') required this.productId, required this.name, this.brand, this.ean, @JsonKey(name: 'unit_value') this.unitValue, @JsonKey(name: 'unit_type') this.unitType, required final  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count') required this.chainsCount, @JsonKey(name: 'best_price_minor') this.bestPriceMinor, @JsonKey(name: 'best_price_chain') this.bestPriceChain, @JsonKey(name: 'needs_store_selection') final  List<String> needsStoreSelection = const <String>[]}): _prices = prices,_needsStoreSelection = needsStoreSelection;
+  const _ProductCardDto({@JsonKey(name: 'product_id') required this.productId, required this.name, this.brand, this.ean, @JsonKey(name: 'image_url') this.imageUrl, @JsonKey(name: 'unit_value') this.unitValue, @JsonKey(name: 'unit_type') this.unitType, required final  List<ChainPriceDto> prices, @JsonKey(name: 'chains_count') required this.chainsCount, @JsonKey(name: 'best_price_minor') this.bestPriceMinor, @JsonKey(name: 'best_price_chain') this.bestPriceChain, @JsonKey(name: 'needs_store_selection') final  List<String> needsStoreSelection = const <String>[]}): _prices = prices,_needsStoreSelection = needsStoreSelection;
   factory _ProductCardDto.fromJson(Map<String, dynamic> json) => _$ProductCardDtoFromJson(json);
 
 @override@JsonKey(name: 'product_id') final  int productId;
 @override final  String name;
 @override final  String? brand;
 @override final  String? ean;
+@override@JsonKey(name: 'image_url') final  String? imageUrl;
 @override@JsonKey(name: 'unit_value') final  double? unitValue;
 @override@JsonKey(name: 'unit_type') final  String? unitType;
  final  List<ChainPriceDto> _prices;
@@ -259,16 +261,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductCardDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other._prices, _prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other._needsStoreSelection, _needsStoreSelection));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductCardDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&const DeepCollectionEquality().equals(other._prices, _prices)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&const DeepCollectionEquality().equals(other._needsStoreSelection, _needsStoreSelection));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,unitValue,unitType,const DeepCollectionEquality().hash(_prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(_needsStoreSelection));
+int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,imageUrl,unitValue,unitType,const DeepCollectionEquality().hash(_prices),chainsCount,bestPriceMinor,bestPriceChain,const DeepCollectionEquality().hash(_needsStoreSelection));
 
 @override
 String toString() {
-  return 'ProductCardDto(productId: $productId, name: $name, brand: $brand, ean: $ean, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
+  return 'ProductCardDto(productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, unitValue: $unitValue, unitType: $unitType, prices: $prices, chainsCount: $chainsCount, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, needsStoreSelection: $needsStoreSelection)';
 }
 
 
@@ -279,7 +281,7 @@ abstract mixin class _$ProductCardDtoCopyWith<$Res> implements $ProductCardDtoCo
   factory _$ProductCardDtoCopyWith(_ProductCardDto value, $Res Function(_ProductCardDto) _then) = __$ProductCardDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType, List<ChainPriceDto> prices,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'needs_store_selection') List<String> needsStoreSelection
+@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType, List<ChainPriceDto> prices,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'needs_store_selection') List<String> needsStoreSelection
 });
 
 
@@ -296,12 +298,13 @@ class __$ProductCardDtoCopyWithImpl<$Res>
 
 /// Create a copy of ProductCardDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? prices = null,Object? chainsCount = null,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? needsStoreSelection = null,}) {
   return _then(_ProductCardDto(
 productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,unitValue: freezed == unitValue ? _self.unitValue : unitValue // ignore: cast_nullable_to_non_nullable
 as double?,unitType: freezed == unitType ? _self.unitType : unitType // ignore: cast_nullable_to_non_nullable
 as String?,prices: null == prices ? _self._prices : prices // ignore: cast_nullable_to_non_nullable

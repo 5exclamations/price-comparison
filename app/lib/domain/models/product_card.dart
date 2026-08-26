@@ -37,6 +37,10 @@ abstract class ProductCard with _$ProductCard {
     required String name,
     String? brand,
     String? ean,
+    /// Картинка товара. null примерно у 2% карточек — у сети её нет.
+    /// Показывать через ProductThumb: он рисует плашку, когда ссылки нет
+    /// или она не загрузилась.
+    String? imageUrl,
     double? unitValue,
     String? unitType,
     required List<ChainPrice> prices,

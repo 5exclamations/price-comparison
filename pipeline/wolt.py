@@ -30,6 +30,21 @@ def leaves(cats):
     return out
 
 
+def _image(x):
+    """Первая картинка позиции или None.
+
+    Приходит списком `[{url, blurhash}, ...]`. Берём первую: остальные — это
+    ракурсы одного товара, на витрине они не нужны. Замер по трём сетям: картинка
+    есть у 97.8% позиций (Araz и SPAR — 100%, Bravo — 94.6%), так что None
+    остаётся легальным исходом и клиент обязан его пережить.
+    """
+    for img in (x.get('images') or []):
+        url = (img or {}).get('url')
+        if url:
+            return url
+    return None
+
+
 def _item(x, cat):
     """Достаём цену и акцию.
 
@@ -46,6 +61,7 @@ def _item(x, cat):
             'promo_until': per.get('end_time') if promo else None,
             'gtin': x.get('barcode_gtin'), 'cat': cat,
             'available': not x.get('disabled_info'),
+            'image': _image(x),
             'unit_price': (x.get('unit_price') or {}).get('price') if x.get('unit_price') else None}
 
 

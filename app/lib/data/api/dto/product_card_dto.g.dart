@@ -12,6 +12,7 @@ _ProductCardDto _$ProductCardDtoFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       brand: json['brand'] as String?,
       ean: json['ean'] as String?,
+      imageUrl: json['image_url'] as String?,
       unitValue: (json['unit_value'] as num?)?.toDouble(),
       unitType: json['unit_type'] as String?,
       prices: (json['prices'] as List<dynamic>)
@@ -33,6 +34,7 @@ Map<String, dynamic> _$ProductCardDtoToJson(_ProductCardDto instance) =>
       'name': instance.name,
       'brand': instance.brand,
       'ean': instance.ean,
+      'image_url': instance.imageUrl,
       'unit_value': instance.unitValue,
       'unit_type': instance.unitType,
       'prices': instance.prices.map((e) => e.toJson()).toList(),

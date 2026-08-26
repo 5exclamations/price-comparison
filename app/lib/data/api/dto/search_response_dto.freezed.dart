@@ -299,7 +299,7 @@ as List<SearchItemDto>,
 /// @nodoc
 mixin _$SearchItemDto {
 
-@JsonKey(name: 'product_id') int get productId; String get name; String? get brand; String? get ean;@JsonKey(name: 'unit_value') double? get unitValue;@JsonKey(name: 'unit_type') String? get unitType;@JsonKey(name: 'best_price_minor') int? get bestPriceMinor;@JsonKey(name: 'best_price_chain') String? get bestPriceChain;@JsonKey(name: 'chains_count') int get chainsCount;@JsonKey(name: 'has_promo') bool get hasPromo;@JsonKey(name: 'observed_at') DateTime? get observedAt;@JsonKey(name: 'needs_store_selection') bool get needsStoreSelection;
+@JsonKey(name: 'product_id') int get productId; String get name; String? get brand; String? get ean;@JsonKey(name: 'image_url') String? get imageUrl;@JsonKey(name: 'unit_value') double? get unitValue;@JsonKey(name: 'unit_type') String? get unitType;@JsonKey(name: 'best_price_minor') int? get bestPriceMinor;@JsonKey(name: 'best_price_chain') String? get bestPriceChain;@JsonKey(name: 'chains_count') int get chainsCount;@JsonKey(name: 'has_promo') bool get hasPromo;@JsonKey(name: 'observed_at') DateTime? get observedAt;@JsonKey(name: 'needs_store_selection') bool get needsStoreSelection;
 /// Create a copy of SearchItemDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,16 +312,16 @@ $SearchItemDtoCopyWith<SearchItemDto> get copyWith => _$SearchItemDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchItemDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.hasPromo, hasPromo) || other.hasPromo == hasPromo)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt)&&(identical(other.needsStoreSelection, needsStoreSelection) || other.needsStoreSelection == needsStoreSelection));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchItemDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.hasPromo, hasPromo) || other.hasPromo == hasPromo)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt)&&(identical(other.needsStoreSelection, needsStoreSelection) || other.needsStoreSelection == needsStoreSelection));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,unitValue,unitType,bestPriceMinor,bestPriceChain,chainsCount,hasPromo,observedAt,needsStoreSelection);
+int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,imageUrl,unitValue,unitType,bestPriceMinor,bestPriceChain,chainsCount,hasPromo,observedAt,needsStoreSelection);
 
 @override
 String toString() {
-  return 'SearchItemDto(productId: $productId, name: $name, brand: $brand, ean: $ean, unitValue: $unitValue, unitType: $unitType, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, chainsCount: $chainsCount, hasPromo: $hasPromo, observedAt: $observedAt, needsStoreSelection: $needsStoreSelection)';
+  return 'SearchItemDto(productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, unitValue: $unitValue, unitType: $unitType, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, chainsCount: $chainsCount, hasPromo: $hasPromo, observedAt: $observedAt, needsStoreSelection: $needsStoreSelection)';
 }
 
 
@@ -332,7 +332,7 @@ abstract mixin class $SearchItemDtoCopyWith<$Res>  {
   factory $SearchItemDtoCopyWith(SearchItemDto value, $Res Function(SearchItemDto) _then) = _$SearchItemDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'has_promo') bool hasPromo,@JsonKey(name: 'observed_at') DateTime? observedAt,@JsonKey(name: 'needs_store_selection') bool needsStoreSelection
+@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'has_promo') bool hasPromo,@JsonKey(name: 'observed_at') DateTime? observedAt,@JsonKey(name: 'needs_store_selection') bool needsStoreSelection
 });
 
 
@@ -349,12 +349,13 @@ class _$SearchItemDtoCopyWithImpl<$Res>
 
 /// Create a copy of SearchItemDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? chainsCount = null,Object? hasPromo = null,Object? observedAt = freezed,Object? needsStoreSelection = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? chainsCount = null,Object? hasPromo = null,Object? observedAt = freezed,Object? needsStoreSelection = null,}) {
   return _then(_self.copyWith(
 productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,unitValue: freezed == unitValue ? _self.unitValue : unitValue // ignore: cast_nullable_to_non_nullable
 as double?,unitType: freezed == unitType ? _self.unitType : unitType // ignore: cast_nullable_to_non_nullable
 as String?,bestPriceMinor: freezed == bestPriceMinor ? _self.bestPriceMinor : bestPriceMinor // ignore: cast_nullable_to_non_nullable
@@ -448,10 +449,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'has_promo')  bool hasPromo, @JsonKey(name: 'observed_at')  DateTime? observedAt, @JsonKey(name: 'needs_store_selection')  bool needsStoreSelection)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'has_promo')  bool hasPromo, @JsonKey(name: 'observed_at')  DateTime? observedAt, @JsonKey(name: 'needs_store_selection')  bool needsStoreSelection)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SearchItemDto() when $default != null:
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.bestPriceMinor,_that.bestPriceChain,_that.chainsCount,_that.hasPromo,_that.observedAt,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.bestPriceMinor,_that.bestPriceChain,_that.chainsCount,_that.hasPromo,_that.observedAt,_that.needsStoreSelection);case _:
   return orElse();
 
 }
@@ -469,10 +470,10 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'has_promo')  bool hasPromo, @JsonKey(name: 'observed_at')  DateTime? observedAt, @JsonKey(name: 'needs_store_selection')  bool needsStoreSelection)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'has_promo')  bool hasPromo, @JsonKey(name: 'observed_at')  DateTime? observedAt, @JsonKey(name: 'needs_store_selection')  bool needsStoreSelection)  $default,) {final _that = this;
 switch (_that) {
 case _SearchItemDto():
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.bestPriceMinor,_that.bestPriceChain,_that.chainsCount,_that.hasPromo,_that.observedAt,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.bestPriceMinor,_that.bestPriceChain,_that.chainsCount,_that.hasPromo,_that.observedAt,_that.needsStoreSelection);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -489,10 +490,10 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'has_promo')  bool hasPromo, @JsonKey(name: 'observed_at')  DateTime? observedAt, @JsonKey(name: 'needs_store_selection')  bool needsStoreSelection)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'unit_value')  double? unitValue, @JsonKey(name: 'unit_type')  String? unitType, @JsonKey(name: 'best_price_minor')  int? bestPriceMinor, @JsonKey(name: 'best_price_chain')  String? bestPriceChain, @JsonKey(name: 'chains_count')  int chainsCount, @JsonKey(name: 'has_promo')  bool hasPromo, @JsonKey(name: 'observed_at')  DateTime? observedAt, @JsonKey(name: 'needs_store_selection')  bool needsStoreSelection)?  $default,) {final _that = this;
 switch (_that) {
 case _SearchItemDto() when $default != null:
-return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue,_that.unitType,_that.bestPriceMinor,_that.bestPriceChain,_that.chainsCount,_that.hasPromo,_that.observedAt,_that.needsStoreSelection);case _:
+return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.unitValue,_that.unitType,_that.bestPriceMinor,_that.bestPriceChain,_that.chainsCount,_that.hasPromo,_that.observedAt,_that.needsStoreSelection);case _:
   return null;
 
 }
@@ -504,13 +505,14 @@ return $default(_that.productId,_that.name,_that.brand,_that.ean,_that.unitValue
 @JsonSerializable()
 
 class _SearchItemDto implements SearchItemDto {
-  const _SearchItemDto({@JsonKey(name: 'product_id') required this.productId, required this.name, this.brand, this.ean, @JsonKey(name: 'unit_value') this.unitValue, @JsonKey(name: 'unit_type') this.unitType, @JsonKey(name: 'best_price_minor') this.bestPriceMinor, @JsonKey(name: 'best_price_chain') this.bestPriceChain, @JsonKey(name: 'chains_count') required this.chainsCount, @JsonKey(name: 'has_promo') required this.hasPromo, @JsonKey(name: 'observed_at') this.observedAt, @JsonKey(name: 'needs_store_selection') this.needsStoreSelection = false});
+  const _SearchItemDto({@JsonKey(name: 'product_id') required this.productId, required this.name, this.brand, this.ean, @JsonKey(name: 'image_url') this.imageUrl, @JsonKey(name: 'unit_value') this.unitValue, @JsonKey(name: 'unit_type') this.unitType, @JsonKey(name: 'best_price_minor') this.bestPriceMinor, @JsonKey(name: 'best_price_chain') this.bestPriceChain, @JsonKey(name: 'chains_count') required this.chainsCount, @JsonKey(name: 'has_promo') required this.hasPromo, @JsonKey(name: 'observed_at') this.observedAt, @JsonKey(name: 'needs_store_selection') this.needsStoreSelection = false});
   factory _SearchItemDto.fromJson(Map<String, dynamic> json) => _$SearchItemDtoFromJson(json);
 
 @override@JsonKey(name: 'product_id') final  int productId;
 @override final  String name;
 @override final  String? brand;
 @override final  String? ean;
+@override@JsonKey(name: 'image_url') final  String? imageUrl;
 @override@JsonKey(name: 'unit_value') final  double? unitValue;
 @override@JsonKey(name: 'unit_type') final  String? unitType;
 @override@JsonKey(name: 'best_price_minor') final  int? bestPriceMinor;
@@ -533,16 +535,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchItemDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.hasPromo, hasPromo) || other.hasPromo == hasPromo)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt)&&(identical(other.needsStoreSelection, needsStoreSelection) || other.needsStoreSelection == needsStoreSelection));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchItemDto&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.unitValue, unitValue) || other.unitValue == unitValue)&&(identical(other.unitType, unitType) || other.unitType == unitType)&&(identical(other.bestPriceMinor, bestPriceMinor) || other.bestPriceMinor == bestPriceMinor)&&(identical(other.bestPriceChain, bestPriceChain) || other.bestPriceChain == bestPriceChain)&&(identical(other.chainsCount, chainsCount) || other.chainsCount == chainsCount)&&(identical(other.hasPromo, hasPromo) || other.hasPromo == hasPromo)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt)&&(identical(other.needsStoreSelection, needsStoreSelection) || other.needsStoreSelection == needsStoreSelection));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,unitValue,unitType,bestPriceMinor,bestPriceChain,chainsCount,hasPromo,observedAt,needsStoreSelection);
+int get hashCode => Object.hash(runtimeType,productId,name,brand,ean,imageUrl,unitValue,unitType,bestPriceMinor,bestPriceChain,chainsCount,hasPromo,observedAt,needsStoreSelection);
 
 @override
 String toString() {
-  return 'SearchItemDto(productId: $productId, name: $name, brand: $brand, ean: $ean, unitValue: $unitValue, unitType: $unitType, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, chainsCount: $chainsCount, hasPromo: $hasPromo, observedAt: $observedAt, needsStoreSelection: $needsStoreSelection)';
+  return 'SearchItemDto(productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, unitValue: $unitValue, unitType: $unitType, bestPriceMinor: $bestPriceMinor, bestPriceChain: $bestPriceChain, chainsCount: $chainsCount, hasPromo: $hasPromo, observedAt: $observedAt, needsStoreSelection: $needsStoreSelection)';
 }
 
 
@@ -553,7 +555,7 @@ abstract mixin class _$SearchItemDtoCopyWith<$Res> implements $SearchItemDtoCopy
   factory _$SearchItemDtoCopyWith(_SearchItemDto value, $Res Function(_SearchItemDto) _then) = __$SearchItemDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'has_promo') bool hasPromo,@JsonKey(name: 'observed_at') DateTime? observedAt,@JsonKey(name: 'needs_store_selection') bool needsStoreSelection
+@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'unit_value') double? unitValue,@JsonKey(name: 'unit_type') String? unitType,@JsonKey(name: 'best_price_minor') int? bestPriceMinor,@JsonKey(name: 'best_price_chain') String? bestPriceChain,@JsonKey(name: 'chains_count') int chainsCount,@JsonKey(name: 'has_promo') bool hasPromo,@JsonKey(name: 'observed_at') DateTime? observedAt,@JsonKey(name: 'needs_store_selection') bool needsStoreSelection
 });
 
 
@@ -570,12 +572,13 @@ class __$SearchItemDtoCopyWithImpl<$Res>
 
 /// Create a copy of SearchItemDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? chainsCount = null,Object? hasPromo = null,Object? observedAt = freezed,Object? needsStoreSelection = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? unitValue = freezed,Object? unitType = freezed,Object? bestPriceMinor = freezed,Object? bestPriceChain = freezed,Object? chainsCount = null,Object? hasPromo = null,Object? observedAt = freezed,Object? needsStoreSelection = null,}) {
   return _then(_SearchItemDto(
 productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,unitValue: freezed == unitValue ? _self.unitValue : unitValue // ignore: cast_nullable_to_non_nullable
 as double?,unitType: freezed == unitType ? _self.unitType : unitType // ignore: cast_nullable_to_non_nullable
 as String?,bestPriceMinor: freezed == bestPriceMinor ? _self.bestPriceMinor : bestPriceMinor // ignore: cast_nullable_to_non_nullable

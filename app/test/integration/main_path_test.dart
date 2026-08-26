@@ -352,11 +352,15 @@ void main() {
 
     // ---------- 5. В список ----------
     final addButton = find.widgetWithText(OutlinedButton, 'Добавить в список');
-    expect(addButton, findsOneWidget);
-    // Кнопка внизу прокручиваемой карточки: без ensureVisible tap попадает
-    // мимо и молча ничего не делает.
-    await tester.ensureVisible(addButton);
+    // Кнопка внизу прокручиваемой карточки, и до неё надо доскроллить, а не
+    // просто найти: ListView не создаёт элементы для того, что лежит дальше
+    // cacheExtent, а find ходит по дереву элементов. Пока карточка была
+    // короткой, кнопка случайно попадала в этот запас и находилась сразу —
+    // достаточно было добавить сверху картинку, чтобы тест развалился на
+    // ровном месте. Прокрутка убирает эту зависимость от высоты вёрстки.
+    await tester.scrollUntilVisible(addButton, 200, maxScrolls: 20);
     await tester.pumpAndSettle();
+    expect(addButton, findsOneWidget);
     await tester.tap(addButton);
     // Список приходит потоком из drift: событие асинхронное, и одного кадра
     // мало — pumpAndSettle крутит анимации, а не очередь базы.

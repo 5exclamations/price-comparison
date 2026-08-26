@@ -30,6 +30,7 @@ abstract class SearchItemDto with _$SearchItemDto {
     required String name,
     String? brand,
     String? ean,
+    @JsonKey(name: 'image_url') String? imageUrl,
     @JsonKey(name: 'unit_value') double? unitValue,
     @JsonKey(name: 'unit_type') String? unitType,
     @JsonKey(name: 'best_price_minor') int? bestPriceMinor,

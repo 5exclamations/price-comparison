@@ -24,6 +24,7 @@ abstract class DealDto with _$DealDto {
     required String name,
     String? brand,
     String? ean,
+    @JsonKey(name: 'image_url') String? imageUrl,
     @JsonKey(name: 'chain_code') required String chainCode,
     @JsonKey(name: 'store_id') int? storeId,
     @JsonKey(name: 'store_name') String? storeName,

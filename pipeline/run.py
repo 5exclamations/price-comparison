@@ -174,7 +174,7 @@ def load_bazarstore(ean):
                 if vt and vt.lower() not in ('default title', 'ədəd', 'eded'):
                     name = f"{name} {vt}"
                 iid = P.upsert_item(con, cid, None, sku, ean.get(sku, ''),
-                                    name, p.get('vendor'))
+                                    name, p.get('vendor'), P._shopify_image(p, v))
                 if P.add_price(con, iid, price, old, v.get('available', True), src):
                     n += 1
     con.commit()

@@ -290,7 +290,7 @@ as List<DealDto>,
 /// @nodoc
 mixin _$DealDto {
 
-@JsonKey(name: 'deal_id') int get dealId;@JsonKey(name: 'product_id') int get productId; String get name; String? get brand; String? get ean;@JsonKey(name: 'chain_code') String get chainCode;@JsonKey(name: 'store_id') int? get storeId;@JsonKey(name: 'store_name') String? get storeName;@JsonKey(name: 'price_cluster') String? get priceCluster;@JsonKey(name: 'price_minor') int get priceMinor;@JsonKey(name: 'old_price_minor') int get oldPriceMinor;@JsonKey(name: 'market_price_minor') int get marketPriceMinor;@JsonKey(name: 'reference_chains') int get referenceChains;@JsonKey(name: 'claimed_discount') double get claimedDiscount;@JsonKey(name: 'real_discount') double get realDiscount; double get inflation; bool get inflated;@JsonKey(name: 'observed_at') DateTime get observedAt;
+@JsonKey(name: 'deal_id') int get dealId;@JsonKey(name: 'product_id') int get productId; String get name; String? get brand; String? get ean;@JsonKey(name: 'image_url') String? get imageUrl;@JsonKey(name: 'chain_code') String get chainCode;@JsonKey(name: 'store_id') int? get storeId;@JsonKey(name: 'store_name') String? get storeName;@JsonKey(name: 'price_cluster') String? get priceCluster;@JsonKey(name: 'price_minor') int get priceMinor;@JsonKey(name: 'old_price_minor') int get oldPriceMinor;@JsonKey(name: 'market_price_minor') int get marketPriceMinor;@JsonKey(name: 'reference_chains') int get referenceChains;@JsonKey(name: 'claimed_discount') double get claimedDiscount;@JsonKey(name: 'real_discount') double get realDiscount; double get inflation; bool get inflated;@JsonKey(name: 'observed_at') DateTime get observedAt;
 /// Create a copy of DealDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -303,16 +303,16 @@ $DealDtoCopyWith<DealDto> get copyWith => _$DealDtoCopyWithImpl<DealDto>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DealDto&&(identical(other.dealId, dealId) || other.dealId == dealId)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.chainCode, chainCode) || other.chainCode == chainCode)&&(identical(other.storeId, storeId) || other.storeId == storeId)&&(identical(other.storeName, storeName) || other.storeName == storeName)&&(identical(other.priceCluster, priceCluster) || other.priceCluster == priceCluster)&&(identical(other.priceMinor, priceMinor) || other.priceMinor == priceMinor)&&(identical(other.oldPriceMinor, oldPriceMinor) || other.oldPriceMinor == oldPriceMinor)&&(identical(other.marketPriceMinor, marketPriceMinor) || other.marketPriceMinor == marketPriceMinor)&&(identical(other.referenceChains, referenceChains) || other.referenceChains == referenceChains)&&(identical(other.claimedDiscount, claimedDiscount) || other.claimedDiscount == claimedDiscount)&&(identical(other.realDiscount, realDiscount) || other.realDiscount == realDiscount)&&(identical(other.inflation, inflation) || other.inflation == inflation)&&(identical(other.inflated, inflated) || other.inflated == inflated)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DealDto&&(identical(other.dealId, dealId) || other.dealId == dealId)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.chainCode, chainCode) || other.chainCode == chainCode)&&(identical(other.storeId, storeId) || other.storeId == storeId)&&(identical(other.storeName, storeName) || other.storeName == storeName)&&(identical(other.priceCluster, priceCluster) || other.priceCluster == priceCluster)&&(identical(other.priceMinor, priceMinor) || other.priceMinor == priceMinor)&&(identical(other.oldPriceMinor, oldPriceMinor) || other.oldPriceMinor == oldPriceMinor)&&(identical(other.marketPriceMinor, marketPriceMinor) || other.marketPriceMinor == marketPriceMinor)&&(identical(other.referenceChains, referenceChains) || other.referenceChains == referenceChains)&&(identical(other.claimedDiscount, claimedDiscount) || other.claimedDiscount == claimedDiscount)&&(identical(other.realDiscount, realDiscount) || other.realDiscount == realDiscount)&&(identical(other.inflation, inflation) || other.inflation == inflation)&&(identical(other.inflated, inflated) || other.inflated == inflated)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,dealId,productId,name,brand,ean,chainCode,storeId,storeName,priceCluster,priceMinor,oldPriceMinor,marketPriceMinor,referenceChains,claimedDiscount,realDiscount,inflation,inflated,observedAt);
+int get hashCode => Object.hashAll([runtimeType,dealId,productId,name,brand,ean,imageUrl,chainCode,storeId,storeName,priceCluster,priceMinor,oldPriceMinor,marketPriceMinor,referenceChains,claimedDiscount,realDiscount,inflation,inflated,observedAt]);
 
 @override
 String toString() {
-  return 'DealDto(dealId: $dealId, productId: $productId, name: $name, brand: $brand, ean: $ean, chainCode: $chainCode, storeId: $storeId, storeName: $storeName, priceCluster: $priceCluster, priceMinor: $priceMinor, oldPriceMinor: $oldPriceMinor, marketPriceMinor: $marketPriceMinor, referenceChains: $referenceChains, claimedDiscount: $claimedDiscount, realDiscount: $realDiscount, inflation: $inflation, inflated: $inflated, observedAt: $observedAt)';
+  return 'DealDto(dealId: $dealId, productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, chainCode: $chainCode, storeId: $storeId, storeName: $storeName, priceCluster: $priceCluster, priceMinor: $priceMinor, oldPriceMinor: $oldPriceMinor, marketPriceMinor: $marketPriceMinor, referenceChains: $referenceChains, claimedDiscount: $claimedDiscount, realDiscount: $realDiscount, inflation: $inflation, inflated: $inflated, observedAt: $observedAt)';
 }
 
 
@@ -323,7 +323,7 @@ abstract mixin class $DealDtoCopyWith<$Res>  {
   factory $DealDtoCopyWith(DealDto value, $Res Function(DealDto) _then) = _$DealDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'deal_id') int dealId,@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'chain_code') String chainCode,@JsonKey(name: 'store_id') int? storeId,@JsonKey(name: 'store_name') String? storeName,@JsonKey(name: 'price_cluster') String? priceCluster,@JsonKey(name: 'price_minor') int priceMinor,@JsonKey(name: 'old_price_minor') int oldPriceMinor,@JsonKey(name: 'market_price_minor') int marketPriceMinor,@JsonKey(name: 'reference_chains') int referenceChains,@JsonKey(name: 'claimed_discount') double claimedDiscount,@JsonKey(name: 'real_discount') double realDiscount, double inflation, bool inflated,@JsonKey(name: 'observed_at') DateTime observedAt
+@JsonKey(name: 'deal_id') int dealId,@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'chain_code') String chainCode,@JsonKey(name: 'store_id') int? storeId,@JsonKey(name: 'store_name') String? storeName,@JsonKey(name: 'price_cluster') String? priceCluster,@JsonKey(name: 'price_minor') int priceMinor,@JsonKey(name: 'old_price_minor') int oldPriceMinor,@JsonKey(name: 'market_price_minor') int marketPriceMinor,@JsonKey(name: 'reference_chains') int referenceChains,@JsonKey(name: 'claimed_discount') double claimedDiscount,@JsonKey(name: 'real_discount') double realDiscount, double inflation, bool inflated,@JsonKey(name: 'observed_at') DateTime observedAt
 });
 
 
@@ -340,13 +340,14 @@ class _$DealDtoCopyWithImpl<$Res>
 
 /// Create a copy of DealDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dealId = null,Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? chainCode = null,Object? storeId = freezed,Object? storeName = freezed,Object? priceCluster = freezed,Object? priceMinor = null,Object? oldPriceMinor = null,Object? marketPriceMinor = null,Object? referenceChains = null,Object? claimedDiscount = null,Object? realDiscount = null,Object? inflation = null,Object? inflated = null,Object? observedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dealId = null,Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? chainCode = null,Object? storeId = freezed,Object? storeName = freezed,Object? priceCluster = freezed,Object? priceMinor = null,Object? oldPriceMinor = null,Object? marketPriceMinor = null,Object? referenceChains = null,Object? claimedDiscount = null,Object? realDiscount = null,Object? inflation = null,Object? inflated = null,Object? observedAt = null,}) {
   return _then(_self.copyWith(
 dealId: null == dealId ? _self.dealId : dealId // ignore: cast_nullable_to_non_nullable
 as int,productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,chainCode: null == chainCode ? _self.chainCode : chainCode // ignore: cast_nullable_to_non_nullable
 as String,storeId: freezed == storeId ? _self.storeId : storeId // ignore: cast_nullable_to_non_nullable
 as int?,storeName: freezed == storeName ? _self.storeName : storeName // ignore: cast_nullable_to_non_nullable
@@ -445,10 +446,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'deal_id')  int dealId, @JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'chain_code')  String chainCode, @JsonKey(name: 'store_id')  int? storeId, @JsonKey(name: 'store_name')  String? storeName, @JsonKey(name: 'price_cluster')  String? priceCluster, @JsonKey(name: 'price_minor')  int priceMinor, @JsonKey(name: 'old_price_minor')  int oldPriceMinor, @JsonKey(name: 'market_price_minor')  int marketPriceMinor, @JsonKey(name: 'reference_chains')  int referenceChains, @JsonKey(name: 'claimed_discount')  double claimedDiscount, @JsonKey(name: 'real_discount')  double realDiscount,  double inflation,  bool inflated, @JsonKey(name: 'observed_at')  DateTime observedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'deal_id')  int dealId, @JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'chain_code')  String chainCode, @JsonKey(name: 'store_id')  int? storeId, @JsonKey(name: 'store_name')  String? storeName, @JsonKey(name: 'price_cluster')  String? priceCluster, @JsonKey(name: 'price_minor')  int priceMinor, @JsonKey(name: 'old_price_minor')  int oldPriceMinor, @JsonKey(name: 'market_price_minor')  int marketPriceMinor, @JsonKey(name: 'reference_chains')  int referenceChains, @JsonKey(name: 'claimed_discount')  double claimedDiscount, @JsonKey(name: 'real_discount')  double realDiscount,  double inflation,  bool inflated, @JsonKey(name: 'observed_at')  DateTime observedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DealDto() when $default != null:
-return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_that.chainCode,_that.storeId,_that.storeName,_that.priceCluster,_that.priceMinor,_that.oldPriceMinor,_that.marketPriceMinor,_that.referenceChains,_that.claimedDiscount,_that.realDiscount,_that.inflation,_that.inflated,_that.observedAt);case _:
+return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.chainCode,_that.storeId,_that.storeName,_that.priceCluster,_that.priceMinor,_that.oldPriceMinor,_that.marketPriceMinor,_that.referenceChains,_that.claimedDiscount,_that.realDiscount,_that.inflation,_that.inflated,_that.observedAt);case _:
   return orElse();
 
 }
@@ -466,10 +467,10 @@ return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'deal_id')  int dealId, @JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'chain_code')  String chainCode, @JsonKey(name: 'store_id')  int? storeId, @JsonKey(name: 'store_name')  String? storeName, @JsonKey(name: 'price_cluster')  String? priceCluster, @JsonKey(name: 'price_minor')  int priceMinor, @JsonKey(name: 'old_price_minor')  int oldPriceMinor, @JsonKey(name: 'market_price_minor')  int marketPriceMinor, @JsonKey(name: 'reference_chains')  int referenceChains, @JsonKey(name: 'claimed_discount')  double claimedDiscount, @JsonKey(name: 'real_discount')  double realDiscount,  double inflation,  bool inflated, @JsonKey(name: 'observed_at')  DateTime observedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'deal_id')  int dealId, @JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'chain_code')  String chainCode, @JsonKey(name: 'store_id')  int? storeId, @JsonKey(name: 'store_name')  String? storeName, @JsonKey(name: 'price_cluster')  String? priceCluster, @JsonKey(name: 'price_minor')  int priceMinor, @JsonKey(name: 'old_price_minor')  int oldPriceMinor, @JsonKey(name: 'market_price_minor')  int marketPriceMinor, @JsonKey(name: 'reference_chains')  int referenceChains, @JsonKey(name: 'claimed_discount')  double claimedDiscount, @JsonKey(name: 'real_discount')  double realDiscount,  double inflation,  bool inflated, @JsonKey(name: 'observed_at')  DateTime observedAt)  $default,) {final _that = this;
 switch (_that) {
 case _DealDto():
-return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_that.chainCode,_that.storeId,_that.storeName,_that.priceCluster,_that.priceMinor,_that.oldPriceMinor,_that.marketPriceMinor,_that.referenceChains,_that.claimedDiscount,_that.realDiscount,_that.inflation,_that.inflated,_that.observedAt);case _:
+return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.chainCode,_that.storeId,_that.storeName,_that.priceCluster,_that.priceMinor,_that.oldPriceMinor,_that.marketPriceMinor,_that.referenceChains,_that.claimedDiscount,_that.realDiscount,_that.inflation,_that.inflated,_that.observedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -486,10 +487,10 @@ return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'deal_id')  int dealId, @JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'chain_code')  String chainCode, @JsonKey(name: 'store_id')  int? storeId, @JsonKey(name: 'store_name')  String? storeName, @JsonKey(name: 'price_cluster')  String? priceCluster, @JsonKey(name: 'price_minor')  int priceMinor, @JsonKey(name: 'old_price_minor')  int oldPriceMinor, @JsonKey(name: 'market_price_minor')  int marketPriceMinor, @JsonKey(name: 'reference_chains')  int referenceChains, @JsonKey(name: 'claimed_discount')  double claimedDiscount, @JsonKey(name: 'real_discount')  double realDiscount,  double inflation,  bool inflated, @JsonKey(name: 'observed_at')  DateTime observedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'deal_id')  int dealId, @JsonKey(name: 'product_id')  int productId,  String name,  String? brand,  String? ean, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'chain_code')  String chainCode, @JsonKey(name: 'store_id')  int? storeId, @JsonKey(name: 'store_name')  String? storeName, @JsonKey(name: 'price_cluster')  String? priceCluster, @JsonKey(name: 'price_minor')  int priceMinor, @JsonKey(name: 'old_price_minor')  int oldPriceMinor, @JsonKey(name: 'market_price_minor')  int marketPriceMinor, @JsonKey(name: 'reference_chains')  int referenceChains, @JsonKey(name: 'claimed_discount')  double claimedDiscount, @JsonKey(name: 'real_discount')  double realDiscount,  double inflation,  bool inflated, @JsonKey(name: 'observed_at')  DateTime observedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _DealDto() when $default != null:
-return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_that.chainCode,_that.storeId,_that.storeName,_that.priceCluster,_that.priceMinor,_that.oldPriceMinor,_that.marketPriceMinor,_that.referenceChains,_that.claimedDiscount,_that.realDiscount,_that.inflation,_that.inflated,_that.observedAt);case _:
+return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_that.imageUrl,_that.chainCode,_that.storeId,_that.storeName,_that.priceCluster,_that.priceMinor,_that.oldPriceMinor,_that.marketPriceMinor,_that.referenceChains,_that.claimedDiscount,_that.realDiscount,_that.inflation,_that.inflated,_that.observedAt);case _:
   return null;
 
 }
@@ -501,7 +502,7 @@ return $default(_that.dealId,_that.productId,_that.name,_that.brand,_that.ean,_t
 @JsonSerializable()
 
 class _DealDto implements DealDto {
-  const _DealDto({@JsonKey(name: 'deal_id') required this.dealId, @JsonKey(name: 'product_id') required this.productId, required this.name, this.brand, this.ean, @JsonKey(name: 'chain_code') required this.chainCode, @JsonKey(name: 'store_id') this.storeId, @JsonKey(name: 'store_name') this.storeName, @JsonKey(name: 'price_cluster') this.priceCluster, @JsonKey(name: 'price_minor') required this.priceMinor, @JsonKey(name: 'old_price_minor') required this.oldPriceMinor, @JsonKey(name: 'market_price_minor') required this.marketPriceMinor, @JsonKey(name: 'reference_chains') required this.referenceChains, @JsonKey(name: 'claimed_discount') required this.claimedDiscount, @JsonKey(name: 'real_discount') required this.realDiscount, required this.inflation, required this.inflated, @JsonKey(name: 'observed_at') required this.observedAt});
+  const _DealDto({@JsonKey(name: 'deal_id') required this.dealId, @JsonKey(name: 'product_id') required this.productId, required this.name, this.brand, this.ean, @JsonKey(name: 'image_url') this.imageUrl, @JsonKey(name: 'chain_code') required this.chainCode, @JsonKey(name: 'store_id') this.storeId, @JsonKey(name: 'store_name') this.storeName, @JsonKey(name: 'price_cluster') this.priceCluster, @JsonKey(name: 'price_minor') required this.priceMinor, @JsonKey(name: 'old_price_minor') required this.oldPriceMinor, @JsonKey(name: 'market_price_minor') required this.marketPriceMinor, @JsonKey(name: 'reference_chains') required this.referenceChains, @JsonKey(name: 'claimed_discount') required this.claimedDiscount, @JsonKey(name: 'real_discount') required this.realDiscount, required this.inflation, required this.inflated, @JsonKey(name: 'observed_at') required this.observedAt});
   factory _DealDto.fromJson(Map<String, dynamic> json) => _$DealDtoFromJson(json);
 
 @override@JsonKey(name: 'deal_id') final  int dealId;
@@ -509,6 +510,7 @@ class _DealDto implements DealDto {
 @override final  String name;
 @override final  String? brand;
 @override final  String? ean;
+@override@JsonKey(name: 'image_url') final  String? imageUrl;
 @override@JsonKey(name: 'chain_code') final  String chainCode;
 @override@JsonKey(name: 'store_id') final  int? storeId;
 @override@JsonKey(name: 'store_name') final  String? storeName;
@@ -536,16 +538,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DealDto&&(identical(other.dealId, dealId) || other.dealId == dealId)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.chainCode, chainCode) || other.chainCode == chainCode)&&(identical(other.storeId, storeId) || other.storeId == storeId)&&(identical(other.storeName, storeName) || other.storeName == storeName)&&(identical(other.priceCluster, priceCluster) || other.priceCluster == priceCluster)&&(identical(other.priceMinor, priceMinor) || other.priceMinor == priceMinor)&&(identical(other.oldPriceMinor, oldPriceMinor) || other.oldPriceMinor == oldPriceMinor)&&(identical(other.marketPriceMinor, marketPriceMinor) || other.marketPriceMinor == marketPriceMinor)&&(identical(other.referenceChains, referenceChains) || other.referenceChains == referenceChains)&&(identical(other.claimedDiscount, claimedDiscount) || other.claimedDiscount == claimedDiscount)&&(identical(other.realDiscount, realDiscount) || other.realDiscount == realDiscount)&&(identical(other.inflation, inflation) || other.inflation == inflation)&&(identical(other.inflated, inflated) || other.inflated == inflated)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DealDto&&(identical(other.dealId, dealId) || other.dealId == dealId)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.ean, ean) || other.ean == ean)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.chainCode, chainCode) || other.chainCode == chainCode)&&(identical(other.storeId, storeId) || other.storeId == storeId)&&(identical(other.storeName, storeName) || other.storeName == storeName)&&(identical(other.priceCluster, priceCluster) || other.priceCluster == priceCluster)&&(identical(other.priceMinor, priceMinor) || other.priceMinor == priceMinor)&&(identical(other.oldPriceMinor, oldPriceMinor) || other.oldPriceMinor == oldPriceMinor)&&(identical(other.marketPriceMinor, marketPriceMinor) || other.marketPriceMinor == marketPriceMinor)&&(identical(other.referenceChains, referenceChains) || other.referenceChains == referenceChains)&&(identical(other.claimedDiscount, claimedDiscount) || other.claimedDiscount == claimedDiscount)&&(identical(other.realDiscount, realDiscount) || other.realDiscount == realDiscount)&&(identical(other.inflation, inflation) || other.inflation == inflation)&&(identical(other.inflated, inflated) || other.inflated == inflated)&&(identical(other.observedAt, observedAt) || other.observedAt == observedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,dealId,productId,name,brand,ean,chainCode,storeId,storeName,priceCluster,priceMinor,oldPriceMinor,marketPriceMinor,referenceChains,claimedDiscount,realDiscount,inflation,inflated,observedAt);
+int get hashCode => Object.hashAll([runtimeType,dealId,productId,name,brand,ean,imageUrl,chainCode,storeId,storeName,priceCluster,priceMinor,oldPriceMinor,marketPriceMinor,referenceChains,claimedDiscount,realDiscount,inflation,inflated,observedAt]);
 
 @override
 String toString() {
-  return 'DealDto(dealId: $dealId, productId: $productId, name: $name, brand: $brand, ean: $ean, chainCode: $chainCode, storeId: $storeId, storeName: $storeName, priceCluster: $priceCluster, priceMinor: $priceMinor, oldPriceMinor: $oldPriceMinor, marketPriceMinor: $marketPriceMinor, referenceChains: $referenceChains, claimedDiscount: $claimedDiscount, realDiscount: $realDiscount, inflation: $inflation, inflated: $inflated, observedAt: $observedAt)';
+  return 'DealDto(dealId: $dealId, productId: $productId, name: $name, brand: $brand, ean: $ean, imageUrl: $imageUrl, chainCode: $chainCode, storeId: $storeId, storeName: $storeName, priceCluster: $priceCluster, priceMinor: $priceMinor, oldPriceMinor: $oldPriceMinor, marketPriceMinor: $marketPriceMinor, referenceChains: $referenceChains, claimedDiscount: $claimedDiscount, realDiscount: $realDiscount, inflation: $inflation, inflated: $inflated, observedAt: $observedAt)';
 }
 
 
@@ -556,7 +558,7 @@ abstract mixin class _$DealDtoCopyWith<$Res> implements $DealDtoCopyWith<$Res> {
   factory _$DealDtoCopyWith(_DealDto value, $Res Function(_DealDto) _then) = __$DealDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'deal_id') int dealId,@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'chain_code') String chainCode,@JsonKey(name: 'store_id') int? storeId,@JsonKey(name: 'store_name') String? storeName,@JsonKey(name: 'price_cluster') String? priceCluster,@JsonKey(name: 'price_minor') int priceMinor,@JsonKey(name: 'old_price_minor') int oldPriceMinor,@JsonKey(name: 'market_price_minor') int marketPriceMinor,@JsonKey(name: 'reference_chains') int referenceChains,@JsonKey(name: 'claimed_discount') double claimedDiscount,@JsonKey(name: 'real_discount') double realDiscount, double inflation, bool inflated,@JsonKey(name: 'observed_at') DateTime observedAt
+@JsonKey(name: 'deal_id') int dealId,@JsonKey(name: 'product_id') int productId, String name, String? brand, String? ean,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'chain_code') String chainCode,@JsonKey(name: 'store_id') int? storeId,@JsonKey(name: 'store_name') String? storeName,@JsonKey(name: 'price_cluster') String? priceCluster,@JsonKey(name: 'price_minor') int priceMinor,@JsonKey(name: 'old_price_minor') int oldPriceMinor,@JsonKey(name: 'market_price_minor') int marketPriceMinor,@JsonKey(name: 'reference_chains') int referenceChains,@JsonKey(name: 'claimed_discount') double claimedDiscount,@JsonKey(name: 'real_discount') double realDiscount, double inflation, bool inflated,@JsonKey(name: 'observed_at') DateTime observedAt
 });
 
 
@@ -573,13 +575,14 @@ class __$DealDtoCopyWithImpl<$Res>
 
 /// Create a copy of DealDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dealId = null,Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? chainCode = null,Object? storeId = freezed,Object? storeName = freezed,Object? priceCluster = freezed,Object? priceMinor = null,Object? oldPriceMinor = null,Object? marketPriceMinor = null,Object? referenceChains = null,Object? claimedDiscount = null,Object? realDiscount = null,Object? inflation = null,Object? inflated = null,Object? observedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dealId = null,Object? productId = null,Object? name = null,Object? brand = freezed,Object? ean = freezed,Object? imageUrl = freezed,Object? chainCode = null,Object? storeId = freezed,Object? storeName = freezed,Object? priceCluster = freezed,Object? priceMinor = null,Object? oldPriceMinor = null,Object? marketPriceMinor = null,Object? referenceChains = null,Object? claimedDiscount = null,Object? realDiscount = null,Object? inflation = null,Object? inflated = null,Object? observedAt = null,}) {
   return _then(_DealDto(
 dealId: null == dealId ? _self.dealId : dealId // ignore: cast_nullable_to_non_nullable
 as int,productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String?,ean: freezed == ean ? _self.ean : ean // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,chainCode: null == chainCode ? _self.chainCode : chainCode // ignore: cast_nullable_to_non_nullable
 as String,storeId: freezed == storeId ? _self.storeId : storeId // ignore: cast_nullable_to_non_nullable
 as int?,storeName: freezed == storeName ? _self.storeName : storeName // ignore: cast_nullable_to_non_nullable

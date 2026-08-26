@@ -21,7 +21,7 @@ router = APIRouter()
 # Сортировка: сначала похожесть, потом id. Второй ключ обязателен — без него
 # товары с одинаковой похожестью прыгали бы между страницами.
 SEARCH_BY_NAME = """
-SELECT p.id, p.name, p.brand, p.ean, p.unit_value, p.unit_type,
+SELECT p.id, p.name, p.brand, p.ean, p.image_url, p.unit_value, p.unit_type,
        similarity(qiymet_norm(p.name), qiymet_norm(:q)) AS sim
 FROM products p
 WHERE p.quarantined = 0
@@ -40,7 +40,7 @@ LIMIT :lim
 # отдала сеть. Второе нужно, потому что products.ean заполнен не всегда, а
 # store_items.ean часто есть.
 SEARCH_BY_BARCODE = """
-SELECT DISTINCT p.id, p.name, p.brand, p.ean, p.unit_value, p.unit_type,
+SELECT DISTINCT p.id, p.name, p.brand, p.ean, p.image_url, p.unit_value, p.unit_type,
        1.0::float8 AS sim
 FROM products p
 LEFT JOIN store_items si ON si.product_id = p.id
@@ -112,6 +112,7 @@ async def search(
                     name=r["name"],
                     brand=r["brand"],
                     ean=r["ean"],
+                    image_url=r["image_url"],
                     unit_value=r["unit_value"],
                     unit_type=r["unit_type"],
                     best_price_minor=summary.best_price_minor,

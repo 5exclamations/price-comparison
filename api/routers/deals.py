@@ -20,7 +20,7 @@ router = APIRouter()
 DEALS = """
 SELECT d.store_item_id,
        d.product_id,
-       p.name, p.brand, p.ean,
+       p.name, p.brand, p.ean, p.image_url,
        c.code            AS chain_code,
        d.store_id,
        st.name           AS store_name,
@@ -131,6 +131,7 @@ async def deals(
                 name=r["name"],
                 brand=r["brand"],
                 ean=r["ean"],
+                image_url=r["image_url"],
                 chain_code=r["chain_code"],
                 store_id=r["store_id"],
                 store_name=r["store_name"],

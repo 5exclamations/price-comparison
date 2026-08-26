@@ -74,20 +74,25 @@ def cmd_init():
     print('БД создана:', DB)
 
 
-def upsert_item(con, chain_id, store_id, sku, ean, raw, brand=None):
+def upsert_item(con, chain_id, store_id, sku, ean, raw, brand=None, image=None):
     kind = ean_kind(ean)
     uv, ut, pack = parse_unit(raw)
     con.execute("""
         INSERT INTO store_items (chain_id, store_id, chain_sku, ean, ean_kind,
-                                 raw_name, norm_name, brand, unit_value, unit_type, pack)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                                 raw_name, norm_name, brand, unit_value, unit_type,
+                                 pack, image_url)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         ON CONFLICT (chain_id, COALESCE(store_id, 0), chain_sku) DO UPDATE SET
             last_seen = datetime('now'),
             ean       = COALESCE(excluded.ean, store_items.ean),
             raw_name  = excluded.raw_name,
-            norm_name = excluded.norm_name
+            norm_name = excluded.norm_name,
+            -- COALESCE, а не присваивание: если сеть в этот прогон картинку не
+            -- отдала (перебои на их CDN, пустой ответ), лучше показать вчерашнюю,
+            -- чем обнулить и уронить карточку на плашку.
+            image_url = COALESCE(excluded.image_url, store_items.image_url)
     """, (chain_id, store_id, sku, ean or None, kind, raw, norm_name(raw),
-          brand, uv, ut, pack))
+          brand, uv, ut, pack, image or None))
     r = con.execute("""SELECT id FROM store_items
                        WHERE chain_id=? AND chain_sku=?
                          AND (store_id IS ? OR store_id=?)""",
@@ -153,6 +158,24 @@ def fetch_bazarstore(with_barcodes=True, limit=None):
     return out
 
 
+def _shopify_image(p, v):
+    """Картинка варианта, иначе картинка товара, иначе None.
+
+    У весовых товаров Bazarstore варианты («1 kg», «250 gr») — это один и тот же
+    продукт в разной фасовке, и своей картинки у них обычно нет. Поэтому сначала
+    featured_image варианта, потом общая: иначе 250-граммовая пачка осталась бы
+    вовсе без картинки, хотя у килограммовой она есть.
+    """
+    fi = (v.get('featured_image') or {}).get('src') if v.get('featured_image') else None
+    if fi:
+        return fi
+    for img in (p.get('images') or []):
+        src = (img or {}).get('src')
+        if src:
+            return src
+    return None
+
+
 def cmd_bazarstore(limit=None):
     con = db()
     cid = con.execute("SELECT id FROM chains WHERE code='bazarstore'").fetchone()['id']
@@ -162,7 +185,7 @@ def cmd_bazarstore(limit=None):
         for v in p['variants']:
             ean = (p.get('_bc') or {}).get(v['id'], '')
             iid = upsert_item(con, cid, None, str(v['sku'] or v['id']), ean,
-                              p['title'], p.get('vendor'))
+                              p['title'], p.get('vendor'), _shopify_image(p, v))
             price = int(round(float(v['price']) * 100))
             old = v.get('compare_at_price')
             old = int(round(float(old) * 100)) if old and float(old) > 0 else None
@@ -243,7 +266,8 @@ def cmd_wolt(path='raw/wolt_all.json'):
                 # хвостовых цифр названия, и «Siyəzən Toyuq 1010» слипался с
                 # «Qələm Pensan 1010»: разные товары, один ключ, ложная смена цены.
                 sku = it.get('id') or norm_name(it['name'])[:60]
-                iid = upsert_item(con, cid, sid, sku, it.get('gtin') or '', it['name'])
+                iid = upsert_item(con, cid, sid, sku, it.get('gtin') or '', it['name'],
+                                  None, it.get('image'))
                 if add_price(con, iid, int(it['price']), it.get('old'),
                              it.get('available', True), 'wolt_api', it.get('promo_until')):
                     n_new += 1
@@ -277,7 +301,8 @@ def cmd_bravo(path=None):
             # внутренний код Bravo зашит в хвост названия
             m = re.search(r'(\d{3,6})\s*$', it['name'].strip())
             sku = m.group(1) if m else norm_name(it['name'])[:60]
-            iid = upsert_item(con, cid, sid, sku, it.get('gtin') or '', it['name'])
+            iid = upsert_item(con, cid, sid, sku, it.get('gtin') or '', it['name'],
+                              None, it.get('image'))
             if add_price(con, iid, int(it['price']), None, 1, 'wolt_api'):
                 n_new += 1
     con.commit()
@@ -354,9 +379,43 @@ def cmd_match():
                        VALUES (?,?,'rule',0.5)""", (r['id'], pid))
         rule_n += 1
 
+    refresh_product_images(con)
+
     con.commit()
     print(f'  сматчено по EAN: {ean_n}, по отпечатку названия: {fp_n}, '
           f'без пары: {rule_n}')
+
+
+def refresh_product_images(con):
+    """Проставляет products.image_url по позициям сетей.
+
+    Отдельным проходом, а не в трёх местах, где создаётся продукт: карточка,
+    найденная по EAN, переиспользует уже существующий продукт, и картинка у неё
+    могла бы не появиться никогда — INSERT для неё просто не выполняется.
+
+    Берём картинку любой сети, у которой она есть, предпочитая ту, что пришла
+    раньше (min(id) — сеть, которую собрали первой). Товар один, картинки в
+    сетях отличаются ракурсом, а не содержимым.
+
+    Переписываем только там, где картинки нет: если сеть в этот прогон отдала
+    пустоту, карточка должна остаться со вчерашней, а не мигать плашкой.
+    """
+    cur = con.execute("""
+        UPDATE products SET image_url = (
+            SELECT si.image_url FROM store_items si
+             WHERE si.product_id = products.id AND si.image_url IS NOT NULL
+             ORDER BY si.id LIMIT 1
+        )
+        WHERE image_url IS NULL
+          AND EXISTS (SELECT 1 FROM store_items si
+                       WHERE si.product_id = products.id AND si.image_url IS NOT NULL)
+    """)
+    total = con.execute('SELECT count(*) c FROM products').fetchone()['c']
+    withimg = con.execute(
+        'SELECT count(*) c FROM products WHERE image_url IS NOT NULL').fetchone()['c']
+    pct = 100.0 * withimg / total if total else 0.0
+    print(f'  картинки: проставлено {cur.rowcount}, всего с картинкой '
+          f'{withimg}/{total} ({pct:.1f}%)')
 
 
 def cmd_similar():

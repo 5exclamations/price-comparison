@@ -37,6 +37,11 @@ CREATE TABLE IF NOT EXISTS products (
     unit_value  REAL,                      -- 1.0
     unit_type   TEXT,                      -- l / kg / ml / g / ədəd
     category    TEXT,
+    -- Картинка для показа: берётся из первой позиции сети, у которой она есть.
+    -- Денормализация ради одного запроса на витрине; пересчитывается каждый
+    -- прогон в cmd_match(). NULL — легальное состояние: у ~2% товаров картинки
+    -- нет ни в одной сети, и клиент рисует плашку из первой буквы названия.
+    image_url   TEXT,
     -- 1 = склейке не доверяем, на витрину не показываем, ждёт человека
     quarantined INTEGER NOT NULL DEFAULT 0,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -59,6 +64,7 @@ CREATE TABLE IF NOT EXISTS store_items (
     unit_value  REAL,                      -- в базовых единицах: g / ml / pcs
     unit_type   TEXT,                      -- g / ml / pcs / kg_bulk (весовой, цена за кг)
     pack        INTEGER,                   -- штук в упаковке: «6-LI», «10 LU»
+    image_url   TEXT,                      -- картинка как её отдала сеть
     product_id  INTEGER REFERENCES products(id),
     first_seen  TEXT NOT NULL DEFAULT (datetime('now')),
     last_seen   TEXT NOT NULL DEFAULT (datetime('now')),

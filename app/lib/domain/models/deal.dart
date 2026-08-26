@@ -17,6 +17,10 @@ abstract class Deal with _$Deal {
     required String name,
     String? brand,
     String? ean,
+    /// Картинка товара. null примерно у 2% карточек — у сети её нет.
+    /// Показывать через ProductThumb: он рисует плашку, когда ссылки нет
+    /// или она не загрузилась.
+    String? imageUrl,
     required String chainCode,
     int? storeId,
     String? storeName,
