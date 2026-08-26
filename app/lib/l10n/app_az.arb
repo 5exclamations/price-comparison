@@ -283,5 +283,6 @@
   "catalogOpen": "Mağazanın kataloquna baxın",
   "catalogAllCategories": "Hamısı",
   "catalogEmpty": "Bu bölmədə məhsul yoxdur",
-  "catalogPickStore": "Mağaza seçin"
+  "catalogPickStore": "Mağaza seçin",
+  "catalogAllStores": "Bütün mağazalar"
 }

@@ -539,4 +539,7 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get catalogPickStore => 'Mağaza seçin';
+
+  @override
+  String get catalogAllStores => 'Bütün mağazalar';
 }

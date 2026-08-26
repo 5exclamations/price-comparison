@@ -537,4 +537,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catalogPickStore => 'Pick a store';
+
+  @override
+  String get catalogAllStores => 'All stores';
 }

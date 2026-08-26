@@ -141,5 +141,6 @@
   "catalogOpen": "Browse a store catalogue",
   "catalogAllCategories": "All",
   "catalogEmpty": "No products in this section",
-  "catalogPickStore": "Pick a store"
+  "catalogPickStore": "Pick a store",
+  "catalogAllStores": "All stores"
 }

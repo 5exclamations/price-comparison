@@ -18,6 +18,43 @@ router = APIRouter()
 # Сортировка по real_discount, а не по claimed: смысл ленты в том, чтобы
 # показать настоящую выгоду, а не самую громкую наклейку.
 DEALS = """
+-- Схлопывание филиалов. У сети с единой ценой (price_model = 'single')
+-- позиции лежат по филиалам — Araz отдаёт две точки Wolt, — но цена у них
+-- одна. Без схлопывания одна и та же акция приходит в ленту столько раз,
+-- сколько у сети филиалов, и выглядит это как дубль товара.
+--
+-- У Bravo (per_cluster) схлопывать нельзя: четыре зоны — четыре разные цены,
+-- и это разные предложения, а не повтор одного.
+--
+-- То же правило и тем же ключом работает в api/sql.py для карточки товара.
+-- Здесь оно появилось позже: в ленте дубль заметили уже на устройстве.
+WITH collapsed AS (
+    SELECT DISTINCT ON (d.product_id, d.chain_id, grp.cluster_key)
+           d.store_item_id, d.product_id, d.chain_id, d.store_id,
+           d.price, d.old_price, d.market_price, d.ref_count,
+           d.claimed_discount, d.real_discount, d.inflation, d.inflated,
+           d.observed_at
+    FROM deal_honesty d
+    JOIN chains c       ON c.id = d.chain_id
+    LEFT JOIN stores st ON st.id = d.store_id
+    CROSS JOIN LATERAL (
+        SELECT CASE WHEN c.price_model = 'per_cluster'
+                    THEN coalesce(st.price_cluster, '?')
+                    ELSE '' END AS cluster_key
+    ) grp
+    WHERE (CAST(:min_discount AS float8) IS NULL
+           OR d.real_discount >= CAST(:min_discount AS float8))
+      AND (CAST(:chains AS text[]) IS NULL OR c.code = ANY(CAST(:chains AS text[])))
+      -- Фильтр по выбранному магазину обязан стоять ДО схлопывания, иначе
+      -- выживет строка чужого филиала и цену покажем не ту.
+      AND (CAST(:sel_chain_id AS int) IS NULL
+           OR d.chain_id <> CAST(:sel_chain_id AS int)
+           OR d.store_id  = CAST(:sel_store_id AS int))
+    -- Порядок внутри группы: сначала дешевле, потом меньший id. Второй ключ
+    -- обязателен — без него выбор представителя недетерминирован, и курсорная
+    -- пагинация начнёт терять строки.
+    ORDER BY d.product_id, d.chain_id, grp.cluster_key, d.price, d.store_item_id
+)
 SELECT d.store_item_id,
        d.product_id,
        p.name, p.brand, p.ean, p.image_url,
@@ -34,20 +71,12 @@ SELECT d.store_item_id,
        d.inflation,
        d.inflated,
        d.observed_at
-FROM deal_honesty d
+FROM collapsed d
 JOIN products p     ON p.id = d.product_id
 JOIN chains c       ON c.id = d.chain_id
 LEFT JOIN stores st ON st.id = d.store_id
-WHERE (CAST(:min_discount AS float8) IS NULL OR d.real_discount >= CAST(:min_discount AS float8))
-  AND (CAST(:category AS text)     IS NULL OR p.category = CAST(:category AS text))
-  -- «только мои сети». Фильтруем на сервере, а не в клиенте: при курсорной
-  -- пагинации клиентский фильтр выбросил бы половину страницы, и человек
-  -- увидел бы три акции там, где их двадцать.
-  AND (CAST(:chains AS text[]) IS NULL OR c.code = ANY(CAST(:chains AS text[])))
-  -- при выбранном магазине у его сети остаются только позиции этого магазина
-  AND (CAST(:sel_chain_id AS int) IS NULL
-       OR d.chain_id <> CAST(:sel_chain_id AS int)
-       OR d.store_id  = CAST(:sel_store_id AS int))
+WHERE p.quarantined = 0
+  AND (CAST(:category AS text) IS NULL OR p.category = CAST(:category AS text))
   AND (CAST(:cur_disc AS float8) IS NULL
        OR d.real_discount < CAST(:cur_disc AS float8)
        OR (d.real_discount = CAST(:cur_disc AS float8) AND d.store_item_id > CAST(:cur_id AS int)))
@@ -65,8 +94,7 @@ async def deals(
         None,
         description=(
             "Категория товара. Список доступных — GET /v1/categories. "
-            "ВНИМАНИЕ: products.category в текущем дампе пуста на 100%, "
-            "поэтому любой фильтр по категории вернёт пустой список"
+            "У части товаров категории нет: сеть её не отдаёт"
         ),
     ),
     chains: str | None = Query(

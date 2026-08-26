@@ -166,10 +166,25 @@ class CatalogPickerScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(l10n.errorGeneric)),
         data: (list) => ListView.separated(
-          itemCount: list.length,
+          // Первым пунктом — весь рынок: «посмотреть, что вообще есть
+          // в разделе» это отдельный сценарий, и заставлять ради него выбирать
+          // магазин значит сужать вопрос за человека.
+          itemCount: list.length + 1,
           separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, i) {
-            final Store s = list[i];
+            if (i == 0) {
+              return ListTile(
+                leading: const Icon(Icons.public),
+                title: Text(l10n.catalogAllStores),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => CatalogScreen(title: l10n.catalogAllStores),
+                  ),
+                ),
+              );
+            }
+            final Store s = list[i - 1];
             return ListTile(
               title: Text(s.name),
               subtitle: s.address == null ? null : Text(s.address!),

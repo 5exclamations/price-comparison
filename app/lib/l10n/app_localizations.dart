@@ -951,6 +951,12 @@ abstract class AppLocalizations {
   /// In az, this message translates to:
   /// **'Mağaza seçin'**
   String get catalogPickStore;
+
+  /// No description provided for @catalogAllStores.
+  ///
+  /// In az, this message translates to:
+  /// **'Bütün mağazalar'**
+  String get catalogAllStores;
 }
 
 class _AppLocalizationsDelegate

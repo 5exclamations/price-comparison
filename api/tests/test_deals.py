@@ -200,3 +200,31 @@ async def test_chains_filter_in_cache_key(client):
     araz = await client.get("/v1/deals", params={"limit": 10, "chains": "araz"})
     assert everything.headers["x-cache"] == "miss"
     assert araz.headers["x-cache"] == "miss"
+
+
+async def test_single_price_chain_not_duplicated_by_branch(client):
+    """Сеть с единой ценой не должна повторяться по филиалам.
+
+    У Araz две точки Wolt и один прайс. До схлопывания одна акция приходила
+    в ленту дважды — как «тот же товар два раза», ровно та жалоба, с которой
+    это и нашли. У Bravo (per_cluster) схлопывать нельзя: зоны дают разные
+    цены, и это разные предложения.
+    """
+    r = await client.get("/v1/deals", params={"limit": 100})
+    assert r.status_code == 200
+
+    seen = set()
+    for item in r.json()["items"]:
+        # Ключ предложения: товар + сеть + ценовая зона. У сети с единой ценой
+        # зона всегда одна, поэтому повтор ключа означает повтор филиала.
+        key = (item["product_id"], item["chain_code"], item["price_cluster"])
+        assert key not in seen, f"дубль по филиалу: {item['name']} / {item['chain_code']}"
+        seen.add(key)
+
+
+async def test_quarantined_not_in_feed(client):
+    """Карантинную склейку не показываем никогда — правило из CLAUDE.md."""
+    r = await client.get("/v1/deals", params={"limit": 50})
+    for item in r.json()["items"]:
+        card = await client.get(f"/v1/product/{item['product_id']}")
+        assert card.status_code == 200

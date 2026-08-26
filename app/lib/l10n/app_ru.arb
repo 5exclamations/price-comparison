@@ -141,5 +141,6 @@
   "catalogOpen": "Посмотреть каталог магазина",
   "catalogAllCategories": "Все",
   "catalogEmpty": "В этом разделе товаров нет",
-  "catalogPickStore": "Выберите магазин"
+  "catalogPickStore": "Выберите магазин",
+  "catalogAllStores": "Все магазины"
 }

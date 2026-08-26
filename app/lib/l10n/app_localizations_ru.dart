@@ -555,4 +555,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get catalogPickStore => 'Выберите магазин';
+
+  @override
+  String get catalogAllStores => 'Все магазины';
 }
