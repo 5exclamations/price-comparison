@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/text.dart';
@@ -41,29 +42,84 @@ class ProductThumb extends StatelessWidget {
 
     if (url == null || url.isEmpty) return fallback;
 
+    // Просим у CDN картинку под наш размер, а не оригинал. Разница не
+    // косметическая: у Wolt оригинал 1200x666 весит 38 КБ, версия под превью —
+    // 2.4 КБ. На экране поиска это полсотни картинок, то есть 1.9 МБ против
+    // 120 КБ за один экран.
+    final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 2.0;
+    final targetPx = (size * dpr).round();
+    final sized = _sizedUrl(url, targetPx);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(Radii.sm),
-      child: Image.network(
-        url,
+      // CachedNetworkImage, а не Image.network: у последнего кеш только
+      // в памяти и только на время сеанса. Пролистал ленту вниз и обратно —
+      // картинки качаются заново, и это ровно то мигание, которое видно
+      // глазом. Дисковый кеш заодно даёт картинки офлайн, что для приложения
+      // с офлайновым каталогом на drift обязано работать одинаково.
+      child: CachedNetworkImage(
+        imageUrl: sized,
         width: size,
         height: size,
         fit: BoxFit.cover,
-        // Пока не декодирован ни один кадр — плашка. Размер занят с первого
-        // кадра, и список не прыгает, когда картинки долетают вразнобой.
-        //
-        // Именно frameBuilder, а не loadingBuilder: у последнего
-        // loadingProgress равен null не только когда всё загрузилось, но и
-        // пока не пришёл первый чанк. То есть «progress == null -> показываем
-        // child» рисует пустой RawImage — ровно ту дыру, которой тут быть не
-        // должно. frame == null означает однозначное «кадра ещё нет».
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded || frame != null) return child;
-          return fallback;
-        },
-        errorBuilder: (_, _, _) => fallback,
+        // Декодируем в размер показа, а не в размер файла. Без этого 600x333
+        // держится в памяти целиком на каждую строку списка.
+        memCacheWidth: targetPx,
+        // Плашка вместо спиннера: размер занят с первого кадра, и список
+        // не прыгает, когда картинки долетают вразнобой.
+        placeholder: (_, _) => fallback,
+        errorWidget: (_, _, _) => fallback,
+        // Без анимации: в списке она читается как рябь, а не как плавность.
+        fadeInDuration: Duration.zero,
+        fadeOutDuration: Duration.zero,
       ),
     );
   }
+}
+
+/// Ссылка на картинку нужного размера.
+///
+/// Оба CDN умеют отдавать уменьшенную копию, и не пользоваться этим — значит
+/// тянуть по 38-57 КБ на каждую строку списка вместо 2-6 КБ. Замерено:
+///
+///   Wolt     1200x666  38.0 КБ  ->  ?w=200   200x111   2.4 КБ
+///   Shopify            57.3 КБ  ->  ?width=160         5.7 КБ
+///
+/// Хост неизвестен — возвращаем ссылку как есть: лучше медленно, чем никак.
+@visibleForTesting
+String sizedImageUrl(String url, int targetPx) => _sizedUrl(url, targetPx);
+
+String _sizedUrl(String url, int targetPx) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return url;
+
+  final String param;
+  final int value;
+  switch (uri.host) {
+    case 'wolt-menu-images-cdn.wolt.com':
+      // Wolt округляет до своих ступеней (200, 300, 600, 1200) — просить
+      // промежуточные значения бессмысленно, отдаст ближайшую сверху.
+      param = 'w';
+      value = targetPx <= 200
+          ? 200
+          : targetPx <= 300
+          ? 300
+          : targetPx <= 600
+          ? 600
+          : 1200;
+    case 'cdn.shopify.com':
+      // Shopify отдаёт ровно запрошенную ширину.
+      param = 'width';
+      value = targetPx;
+    default:
+      return url;
+  }
+
+  // Через queryParameters, а не конкатенацией: у Shopify в ссылке уже есть
+  // `?v=...`, и приклеенный «?» превратил бы её в битую.
+  return uri
+      .replace(queryParameters: {...uri.queryParameters, param: '$value'})
+      .toString();
 }
 
 /// Плашка: буква названия на цвете, выведенном из этого же названия.

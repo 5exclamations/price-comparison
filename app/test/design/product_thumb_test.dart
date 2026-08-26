@@ -123,4 +123,31 @@ void main() {
       expect(bgOf(tester).computeLuminance(), lessThan(0.5));
     });
   });
+
+  group('размер картинки под экран', () {
+    test('Wolt округляется до его ступеней', () {
+      const u = 'https://wolt-menu-images-cdn.wolt.com/menu-images/a/b.jpg';
+      expect(sizedImageUrl(u, 168), contains('w=200'));
+      expect(sizedImageUrl(u, 200), contains('w=200'));
+      expect(sizedImageUrl(u, 260), contains('w=300'));
+      expect(sizedImageUrl(u, 384), contains('w=600'));
+    });
+
+    test('Shopify получает точную ширину и не теряет ?v', () {
+      const u = 'https://cdn.shopify.com/s/files/1/x/products/y.webp?v=1703146607';
+      final r = sizedImageUrl(u, 160);
+      expect(r, contains('width=160'));
+      // Без сохранения v ссылка становится битой.
+      expect(r, contains('v=1703146607'));
+    });
+
+    test('чужой хост не трогаем', () {
+      const u = 'https://example.com/a.jpg';
+      expect(sizedImageUrl(u, 160), u);
+    });
+
+    test('мусор вместо ссылки не роняет виджет', () {
+      expect(sizedImageUrl('не ссылка', 160), 'не ссылка');
+    });
+  });
 }

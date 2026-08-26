@@ -56,6 +56,7 @@ dependencies:
   # NFD-нормализация. В dart:core её нет, а нормализация запроса без неё
   # неполная: ğ не разложится в g + U+0306, и поиск разойдётся с сервером.
   unorm_dart: ^0.3.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

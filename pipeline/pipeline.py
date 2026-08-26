@@ -59,9 +59,29 @@ def db():
     return c
 
 
+def ensure_columns(con):
+    """Дотягивает колонки, появившиеся после создания базы.
+
+    schema.sql весь на CREATE TABLE IF NOT EXISTS, поэтому существующей базе
+    новые колонки он не добавит — и прогон упадёт на INSERT с image_url.
+    Отдельных миграций у SQLite-части нет и заводить их ради двух колонок
+    незачем: список ниже идемпотентен и стоит один SELECT.
+    """
+    for table, column, decl in (
+        ('store_items', 'image_url', 'TEXT'),
+        ('products', 'image_url', 'TEXT'),
+    ):
+        have = {r['name'] for r in con.execute(f'PRAGMA table_info({table})')}
+        if column not in have:
+            con.execute(f'ALTER TABLE {table} ADD COLUMN {column} {decl}')
+            print(f'  добавлена колонка {table}.{column}')
+    con.commit()
+
+
 def cmd_init():
     con = db()
     con.executescript(open('schema.sql').read())
+    ensure_columns(con)
     con.executemany(
         'INSERT OR IGNORE INTO chains (code, name, price_model) VALUES (?,?,?)',
         [('bazarstore', 'Bazarstore', 'single'),
@@ -334,6 +354,43 @@ def cmd_match():
                        VALUES (?,?,'ean',1.0)""", (r['id'], pid))
         ean_n += 1
 
+    # 1b. отпечаток против УЖЕ существующих карточек.
+    #
+    # Без этого шага сети без штрихкода никогда не приклеятся к товару, который
+    # уже нашёлся по EAN. Шаг 2 ниже сводит между собой только позиции без пары,
+    # а карточка, созданная на шаге 1, для него не существует — и Neptun,
+    # у которого штрихкод есть у 4% позиций, заводил себе отдельную карточку
+    # на каждый товар. В базе это дало 4007 пар, где рядом лежат «Atena Süd
+    # 2.4% 1 l» из neptun и «Atena Süd 2.4% 1 l» из spar с ОДИНАКОВЫМ
+    # отпечатком: пользователь видит один товар дважды с разными ценами.
+    #
+    # Сравнение точное, а не по похожести: отпечаток включает слова, фасовку и
+    # жирность, и совпадение целиком — то же основание, на котором склеивает
+    # шаг 2. Порог 0.82 из cmd_similar() сюда не годится вовсе: «Azərsüd Süd»
+    # и «Azər Süd» дают 0.62 и не склеятся, а понижать порог нельзя — на нём
+    # держится точность 96%.
+    known = {}
+    for r in con.execute("""SELECT si.product_id, si.raw_name
+                            FROM store_items si
+                            WHERE si.product_id IS NOT NULL""").fetchall():
+        k = fingerprint.key(r['raw_name'])
+        if k is not None:
+            # Первый победивший остаётся: карточки создаются по возрастанию id,
+            # и держаться раннего id стабильнее между прогонами.
+            known.setdefault(k, r['product_id'])
+
+    exist_n = 0
+    for r in con.execute("""SELECT id, raw_name, chain_id FROM store_items
+                            WHERE product_id IS NULL""").fetchall():
+        k = fingerprint.key(r['raw_name'])
+        pid = known.get(k) if k is not None else None
+        if pid is None:
+            continue
+        con.execute('UPDATE store_items SET product_id=? WHERE id=?', (pid, r['id']))
+        con.execute("""INSERT OR IGNORE INTO matches (store_item_id, product_id, method, confidence)
+                       VALUES (?,?,'rule',0.75)""", (r['id'], pid))
+        exist_n += 1
+
     # 2. отпечаток по названию: слова + фасовка + жирность.
     # Это единственный способ сравнить весовые товары и сети без штрихкодов.
     rows = con.execute("""SELECT id, raw_name, brand, unit_value, unit_type, chain_id
@@ -382,8 +439,8 @@ def cmd_match():
     refresh_product_images(con)
 
     con.commit()
-    print(f'  сматчено по EAN: {ean_n}, по отпечатку названия: {fp_n}, '
-          f'без пары: {rule_n}')
+    print(f'  сматчено по EAN: {ean_n}, приклеено к готовым карточкам: {exist_n}, '
+          f'по отпечатку названия: {fp_n}, без пары: {rule_n}')
 
 
 def refresh_product_images(con):
