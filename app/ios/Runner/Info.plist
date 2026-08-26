@@ -32,8 +32,23 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- Разрешение на HTTP только внутри локальной сети. Нужно для отладки на
+	     живом устройстве: там API поднят на машине разработчика по адресу
+	     вида http://192.168.x.x:8001, а ATS режет открытый HTTP по умолчанию.
+	     Именно NSAllowsLocalNetworking, а не NSAllowsArbitraryLoads: первый
+	     касается только приватных адресов, боевой api.qiymet.az как ходил по
+	     HTTPS, так и ходит, и App Store за этот ключ объяснений не требует. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Barkodu və çekdəki QR kodu oxumaq üçün. Şəkil saxlanmır və göndərilmir.</string>
+	<!-- iOS 14+ спрашивает разрешение на обращения в локальную сеть отдельно от
+	     ATS. Без строки система молча обрывает соединение с 192.168.x.x. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Development zamanı yerli şəbəkədəki API serverinə qoşulmaq üçün. Buraxılış versiyasında istifadə olunmur.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Yaxın mağazaları göstərmək üçün. İmtina etsəniz, rayonu əl ilə seçə bilərsiniz.</string>
 	<key>UIApplicationSceneManifest</key>
