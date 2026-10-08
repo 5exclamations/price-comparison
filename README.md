@@ -441,7 +441,7 @@ curl "localhost:8000/v1/products/283/prices?zones=absheron:B"     # priced, for 
 
 Everything below was produced on the development machine used to build this repository (Linux container, Python 3.13, PostgreSQL 16.15 on the same host, one process at a time). Timings are wall-clock for that machine and will differ elsewhere. The data is synthetic, so analytical figures describe the generator, not any real market.
 
-**Tests.** `python -m pytest rpi/tests` against a real PostgreSQL: see the latest figure in [Test run](#test-run) below. Lint: `ruff check rpi` clean.
+**Tests.** 119 tests pass against a real PostgreSQL in about 2.5 minutes ([Test run](#test-run)). Lint is clean.
 
 **Dataset (seed 42, `make seed`).** 5 fictional retailers; 320 canonical products; 1,077 retailer SKUs; 90 days (2026-07-03 to 2026-09-30); 448 price files plus one store file; 245,761 raw price records, of which 3,440 were rejected (all injected defects, per-reason counts match the generator's manifest) and 242,321 became observations; 159,139 rows in the daily fact after zone collapse.
 
@@ -474,7 +474,14 @@ These figures say the matcher behaves as designed on data whose difficulty was c
 
 ### Test run
 
-TEST_RUN_PLACEHOLDER
+```text
+$ python -m pytest rpi/tests -q
+119 passed in 151.82s
+$ ruff check rpi && ruff format --check rpi
+All checks passed! / 43 files already formatted
+```
+
+Coverage by area: text and units 17, migrations 2, generator 8, bronze 4, silver 13, matching 17, gold 14 plus 5 exact-value, API 17, data quality 7, flow 5, dashboard 10 (a few parametrised).
 
 ## Technical trade-offs
 
