@@ -25,15 +25,24 @@ class DbtSummary:
     failures: list[dict] = field(default_factory=list)
 
     def as_dict(self) -> dict:
-        return {"models": self.models, "tests_passed": self.tests_passed,
-                "tests_failed": self.tests_failed, "failures": self.failures}
+        return {
+            "models": self.models,
+            "tests_passed": self.tests_passed,
+            "tests_failed": self.tests_failed,
+            "failures": self.failures,
+        }
 
 
 def _export_connection_env(url: str | None) -> None:
     info = conninfo_to_dict(url or get_settings().database_url)
     os.environ.setdefault("RPI_PG_HOST", "localhost")
-    for env, key in (("RPI_PG_HOST", "host"), ("RPI_PG_PORT", "port"), ("RPI_PG_USER", "user"),
-                     ("RPI_PG_PASSWORD", "password"), ("RPI_PG_DBNAME", "dbname")):
+    for env, key in (
+        ("RPI_PG_HOST", "host"),
+        ("RPI_PG_PORT", "port"),
+        ("RPI_PG_USER", "user"),
+        ("RPI_PG_PASSWORD", "password"),
+        ("RPI_PG_DBNAME", "dbname"),
+    ):
         if key in info:
             os.environ[env] = str(info[key])
 
@@ -44,7 +53,14 @@ def dbt(*args: str, url: str | None = None, vars: dict | None = None) -> DbtSumm
 
     settings = get_settings()
     _export_connection_env(url)
-    cli = [*args, "--project-dir", str(settings.dbt_dir), "--profiles-dir", str(settings.dbt_dir), "--quiet"]
+    cli = [
+        *args,
+        "--project-dir",
+        str(settings.dbt_dir),
+        "--profiles-dir",
+        str(settings.dbt_dir),
+        "--quiet",
+    ]
     if vars:
         cli += ["--vars", str(vars)]
     res = dbtRunner().invoke(cli)
@@ -57,14 +73,27 @@ def dbt(*args: str, url: str | None = None, vars: dict | None = None) -> DbtSumm
                 summary.tests_passed += 1
             else:
                 summary.tests_failed += 1
-                summary.failures.append({"test": node.name, "status": status, "failures": r.failures,
-                                         "message": (r.message or "")[:300]})
+                summary.failures.append(
+                    {
+                        "test": node.name,
+                        "status": status,
+                        "failures": r.failures,
+                        "message": (r.message or "")[:300],
+                    }
+                )
         else:
             summary.models += 1
             if status not in ("success", "pass"):
-                summary.failures.append({"model": node.name, "status": status, "message": (r.message or "")[:300]})
-    log.info("dbt finished", extra={"command": args[0], **summary.as_dict() | {"failures": len(summary.failures)}})
+                summary.failures.append(
+                    {"model": node.name, "status": status, "message": (r.message or "")[:300]}
+                )
+    log.info(
+        "dbt finished",
+        extra={"command": args[0], **summary.as_dict() | {"failures": len(summary.failures)}},
+    )
     if not res.success:
         detail = str(res.exception) if res.exception else f"{len(summary.failures)} failing node(s)"
-        raise DbtFailure(f"dbt {' '.join(args)} failed: {detail}; first failures: {summary.failures[:3]}")
+        raise DbtFailure(
+            f"dbt {' '.join(args)} failed: {detail}; first failures: {summary.failures[:3]}"
+        )
     return summary

@@ -28,8 +28,13 @@ def evaluate(conn: psycopg.Connection, truth_dir: Path) -> dict:
     rows = conn.execute(
         """SELECT si.retailer_code, si.sku, m.product_id, m.method, m.status, p.quarantined
            FROM silver.product_match m JOIN silver.store_item si ON si.id = m.store_item_id
-           JOIN silver.product p ON p.id = m.product_id""").fetchall()
-    known = [(r, truth[(r["retailer_code"], r["sku"])]) for r in rows if (r["retailer_code"], r["sku"]) in truth]
+           JOIN silver.product p ON p.id = m.product_id"""
+    ).fetchall()
+    known = [
+        (r, truth[(r["retailer_code"], r["sku"])])
+        for r in rows
+        if (r["retailer_code"], r["sku"]) in truth
+    ]
 
     def score(selected) -> dict:
         by_pred, by_true, by_both = Counter(), Counter(), Counter()
@@ -42,9 +47,14 @@ def evaluate(conn: psycopg.Connection, truth_dir: Path) -> dict:
         tp = sum(_pairs(n) for n in by_both.values())
         p = tp / predicted if predicted else 1.0
         rc = tp / real if real else 1.0
-        return {"predicted_pairs": predicted, "true_pairs": real, "correct_pairs": tp,
-                "precision": round(p, 4), "recall": round(rc, 4),
-                "f1": round(2 * p * rc / (p + rc), 4) if p + rc else 0.0}
+        return {
+            "predicted_pairs": predicted,
+            "true_pairs": real,
+            "correct_pairs": tp,
+            "precision": round(p, 4),
+            "recall": round(rc, 4),
+            "f1": round(2 * p * rc / (p + rc), 4) if p + rc else 0.0,
+        }
 
     published = [(r, pid) for r, pid in known if not r["quarantined"]]
     by_method = Counter(r["method"] for r, _ in known)
@@ -53,7 +63,8 @@ def evaluate(conn: psycopg.Connection, truth_dir: Path) -> dict:
     q = conn.execute(
         """SELECT si.retailer_code, si.sku, rv.candidate_product_id, rv.score
            FROM silver.match_review rv JOIN silver.store_item si ON si.id = rv.store_item_id
-           WHERE rv.status = 'pending' ORDER BY rv.store_item_id, rv.score DESC""").fetchall()
+           WHERE rv.status = 'pending' ORDER BY rv.store_item_id, rv.score DESC"""
+    ).fetchall()
     # truth product of a canonical product = truth pid of any of its members
     rep = {}
     for r, pid in known:
@@ -72,6 +83,9 @@ def evaluate(conn: psycopg.Connection, truth_dir: Path) -> dict:
         "all_pairs": score(known),
         "by_method": dict(by_method),
         "quarantined_items": sum(1 for r, _ in known if r["quarantined"]),
-        "review_queue": {"items": total, "top_candidate_correct": hit,
-                         "top_candidate_precision": round(hit / total, 4) if total else None},
+        "review_queue": {
+            "items": total,
+            "top_candidate_correct": hit,
+            "top_candidate_precision": round(hit / total, 4) if total else None,
+        },
     }

@@ -12,7 +12,9 @@ from rpi.config import get_settings
 
 
 def connect(url: str | None = None, *, autocommit: bool = False) -> psycopg.Connection:
-    return psycopg.connect(url or get_settings().database_url, row_factory=dict_row, autocommit=autocommit)
+    return psycopg.connect(
+        url or get_settings().database_url, row_factory=dict_row, autocommit=autocommit
+    )
 
 
 @contextmanager

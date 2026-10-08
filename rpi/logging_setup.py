@@ -8,7 +8,7 @@ import sys
 from contextvars import ContextVar
 from datetime import UTC, datetime
 
-_context: ContextVar[dict] = ContextVar("rpi_log_context", default={})
+_context: ContextVar[dict | None] = ContextVar("rpi_log_context", default=None)
 
 _RESERVED = set(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {"message", "asctime"}
 
@@ -20,7 +20,7 @@ class JsonFormatter(logging.Formatter):
             "level": record.levelname,
             "logger": record.name,
             "event": record.getMessage(),
-            **_context.get(),
+            **(_context.get() or {}),
         }
         for key, value in record.__dict__.items():
             if key not in _RESERVED and not key.startswith("_"):
@@ -46,11 +46,11 @@ def configure(level: str = "INFO") -> None:
 
 def bind(**values) -> None:
     """Attach fields (run_id, step, source ...) to every following log line in this context."""
-    _context.set({**_context.get(), **values})
+    _context.set({**(_context.get() or {}), **values})
 
 
 def unbind(*keys: str) -> None:
-    _context.set({k: v for k, v in _context.get().items() if k not in keys})
+    _context.set({k: v for k, v in (_context.get() or {}).items() if k not in keys})
 
 
 def get(name: str) -> logging.Logger:

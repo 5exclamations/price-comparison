@@ -47,7 +47,9 @@ def parse_landing_name(path: Path) -> LandingFile | None:
 
 def discover(landing_dir: Path, *, up_to: date | None = None) -> list[LandingFile]:
     """All recognised landing files, stores first, then by date. Unrecognised files are ignored."""
-    files = [f for p in sorted(landing_dir.rglob("*")) if p.is_file() and (f := parse_landing_name(p))]
+    files = [
+        f for p in sorted(landing_dir.rglob("*")) if p.is_file() and (f := parse_landing_name(p))
+    ]
     if up_to:
         files = [f for f in files if f.business_date <= up_to]
     return sorted(files, key=lambda f: (f.kind != "stores", f.business_date, f.source))
@@ -71,7 +73,10 @@ def _records(f: LandingFile, raw: bytes) -> list[dict]:
             data = json.loads(text)
         except json.JSONDecodeError:
             return [{"_unparseable": text[:500]}]
-        return [r if isinstance(r, dict) else {"_unparseable": str(r)[:500]} for r in (data if isinstance(data, list) else [data])]
+        return [
+            r if isinstance(r, dict) else {"_unparseable": str(r)[:500]}
+            for r in (data if isinstance(data, list) else [data])
+        ]
     return [dict(r) for r in csv.DictReader(io.StringIO(text))]
 
 
@@ -80,10 +85,14 @@ def ingest_file(conn: psycopg.Connection, f: LandingFile) -> dict:
     raw = f.path.read_bytes()
     sha = hashlib.sha256(raw).hexdigest()
     seen = conn.execute(
-        "SELECT batch_id FROM bronze.ingest_batch WHERE source = %s AND file_sha256 = %s", (f.source, sha)
+        "SELECT batch_id FROM bronze.ingest_batch WHERE source = %s AND file_sha256 = %s",
+        (f.source, sha),
     ).fetchone()
     if seen:
-        log.info("file already ingested", extra={"source": f.source, "file": f.path.name, "batch_id": seen["batch_id"]})
+        log.info(
+            "file already ingested",
+            extra={"source": f.source, "file": f.path.name, "batch_id": seen["batch_id"]},
+        )
         return {"status": "skipped", "batch_id": seen["batch_id"], "rows": 0}
 
     records = _records(f, raw)
@@ -92,11 +101,26 @@ def ingest_file(conn: psycopg.Connection, f: LandingFile) -> dict:
            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING batch_id""",
         (f.source, f.kind, str(f.path), sha, len(raw), f.business_date, len(records)),
     ).fetchone()["batch_id"]
-    with conn.cursor() as cur, cur.copy(
-        "COPY bronze.raw_record (batch_id, row_num, source, business_date, record_hash, payload) FROM STDIN"
-    ) as cp:
+    with (
+        conn.cursor() as cur,
+        cur.copy(
+            "COPY bronze.raw_record (batch_id, row_num, source, business_date, record_hash, payload) FROM STDIN"
+        ) as cp,
+    ):
         for i, rec in enumerate(records, start=1):
             body = json.dumps(rec, ensure_ascii=False, sort_keys=True)
-            cp.write_row((batch_id, i, f.source, f.business_date, hashlib.sha1(body.encode()).hexdigest(), body))
-    log.info("file ingested", extra={"source": f.source, "file": f.path.name, "batch_id": batch_id, "rows": len(records)})
+            cp.write_row(
+                (
+                    batch_id,
+                    i,
+                    f.source,
+                    f.business_date,
+                    hashlib.sha1(body.encode()).hexdigest(),
+                    body,
+                )
+            )
+    log.info(
+        "file ingested",
+        extra={"source": f.source, "file": f.path.name, "batch_id": batch_id, "rows": len(records)},
+    )
     return {"status": "ingested", "batch_id": batch_id, "rows": len(records)}

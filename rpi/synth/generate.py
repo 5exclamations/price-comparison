@@ -31,16 +31,88 @@ REFERENCE = Path(__file__).resolve().parent.parent / "reference"
 # retailer: assortment coverage, price bias vs the market, share of rows with a barcode, promo start
 # probability per day, typo rate in names, price ending convention, file format, fetch time.
 RETAILERS: dict[str, dict] = {
-    "baku_fresh":  dict(coverage=0.75, bias=0.000, ean_rate=0.60, promo=0.008, typo=0.010, ending="nines", ext="jsonl", at=(6, 10), brand_rate=1.0, lag=0),
-    "caspianmart": dict(coverage=0.80, bias=-0.015, ean_rate=0.92, promo=0.010, typo=0.004, ending="nines", ext="jsonl", at=(5, 40), brand_rate=0.0, lag=2),
-    "absheron":    dict(coverage=0.70, bias=0.010, ean_rate=0.70, promo=0.007, typo=0.008, ending="fives", ext="json", at=(6, 14), brand_rate=0.5, lag=1),
-    "shirvan":     dict(coverage=0.50, bias=0.060, ean_rate=0.45, promo=0.014, typo=0.006, ending="fives", ext="csv", at=(7, 5), brand_rate=0.9, lag=3),
-    "sumqayit":    dict(coverage=0.60, bias=-0.040, ean_rate=0.05, promo=0.009, typo=0.030, ending="nines", ext="jsonl", at=(4, 55), brand_rate=0.7, lag=0),
+    "baku_fresh": dict(
+        coverage=0.75,
+        bias=0.000,
+        ean_rate=0.60,
+        promo=0.008,
+        typo=0.010,
+        ending="nines",
+        ext="jsonl",
+        at=(6, 10),
+        brand_rate=1.0,
+        lag=0,
+    ),
+    "caspianmart": dict(
+        coverage=0.80,
+        bias=-0.015,
+        ean_rate=0.92,
+        promo=0.010,
+        typo=0.004,
+        ending="nines",
+        ext="jsonl",
+        at=(5, 40),
+        brand_rate=0.0,
+        lag=2,
+    ),
+    "absheron": dict(
+        coverage=0.70,
+        bias=0.010,
+        ean_rate=0.70,
+        promo=0.007,
+        typo=0.008,
+        ending="fives",
+        ext="json",
+        at=(6, 14),
+        brand_rate=0.5,
+        lag=1,
+    ),
+    "shirvan": dict(
+        coverage=0.50,
+        bias=0.060,
+        ean_rate=0.45,
+        promo=0.014,
+        typo=0.006,
+        ending="fives",
+        ext="csv",
+        at=(7, 5),
+        brand_rate=0.9,
+        lag=3,
+    ),
+    "sumqayit": dict(
+        coverage=0.60,
+        bias=-0.040,
+        ean_rate=0.05,
+        promo=0.009,
+        typo=0.030,
+        ending="nines",
+        ext="jsonl",
+        at=(4, 55),
+        brand_rate=0.7,
+        lag=0,
+    ),
 }
 
+# Prices are simulated on a fixed horizon, independent of the requested window, so extending the window
+# later ("tomorrow's files") continues exactly the same price histories.
+HORIZON_START = date(2026, 1, 1)
+HORIZON_DAYS = 500
+
 ZONE_FACTOR = {"A": 1.00, "B": 1.04, "C": 1.07, "D": 0.98}
-DISTRICTS = ["Nəsimi", "Yasamal", "Nizami", "Xətai", "Binəqədi", "Sabunçu", "Suraxanı", "Səbail",
-             "Nərimanov", "Qaradağ", "Pirallahı", "Xəzər"]
+DISTRICTS = [
+    "Nəsimi",
+    "Yasamal",
+    "Nizami",
+    "Xətai",
+    "Binəqədi",
+    "Sabunçu",
+    "Suraxanı",
+    "Səbail",
+    "Nərimanov",
+    "Qaradağ",
+    "Pirallahı",
+    "Xəzər",
+]
 STORE_FORMATS = ["Hypermarket", "Supermarket", "Express"]
 
 _AZ_UPPER = str.maketrans({"i": "İ", "ı": "I"})
@@ -54,10 +126,14 @@ class GenConfig:
     end_date: date = date(2026, 9, 30)
     landing_dir: Path = Path("data/landing")
     truth_dir: Path = Path("data/truth")
-    from_date: date | None = None  # write only files in [from_date, to_date]; simulation is unaffected
+    from_date: date | None = (
+        None  # write only files in [from_date, to_date]; simulation is unaffected
+    )
     to_date: date | None = None
     outage: dict[str, tuple[int, int]] = field(default_factory=lambda: {"sumqayit": (40, 41)})
-    incidents: list[str] = field(default_factory=list)  # e.g. "unit_mismatch:caspianmart:2026-09-30"
+    incidents: list[str] = field(
+        default_factory=list
+    )  # e.g. "unit_mismatch:caspianmart:2026-09-30"
     clean: bool = False  # disable defect injection (useful for exact-count tests)
 
     @property
@@ -84,6 +160,18 @@ class Row:
 # --------------------------------------------------------------------------------------- names
 
 
+def _make_sku(retailer: str, rng: random.Random, pid: int) -> str:
+    if retailer == "baku_fresh":
+        return f"BF-{rng.randrange(10**6):06d}"
+    if retailer == "caspianmart":
+        return str(rng.randrange(10**7, 10**8))
+    if retailer == "absheron":
+        return f"A{rng.randrange(10**5):05d}"
+    if retailer == "shirvan":
+        return f"SH{rng.randrange(10**4):04d}-{pid % 97}"
+    return f"{rng.randrange(16**8):08x}"
+
+
 def _typo(rng: random.Random, text: str) -> str:
     letters = [i for i, c in enumerate(text) if c.isalpha()]
     if len(letters) < 5:
@@ -100,26 +188,52 @@ def _size(p: Product, style: str) -> str:
         return {"caspianmart": "KQ", "shirvan": "kg"}.get(style, "kq")
     if u == "pcs":
         if p.pack:  # rolls / bags: sold as "8 Lİ"
-            return {"caspianmart": f"{v} LI", "absheron": f"{v}-li", "shirvan": f"{v} lı"}.get(style, f"{v} li")
+            return {"caspianmart": f"{v} LI", "absheron": f"{v}-li", "shirvan": f"{v} lı"}.get(
+                style, f"{v} li"
+            )
         return {"caspianmart": f"{v} ƏDƏD", "absheron": f"{v} ədəd"}.get(style, f"{v} ədəd")
     big = v >= 1000
     if style == "caspianmart":
-        return f"{v / 1000:g}L" if u == "ml" and big else f"{v / 1000:g}KQ" if big else f"{v}{'ML' if u == 'ml' else 'Q'}"
+        return (
+            f"{v / 1000:g}L"
+            if u == "ml" and big
+            else f"{v / 1000:g}KQ"
+            if big
+            else f"{v}{'ML' if u == 'ml' else 'Q'}"
+        )
     if style == "absheron":
-        return f"{v / 1000:g} lt" if u == "ml" and big else f"{v / 1000:g} kq" if big else f"{v} {'ml' if u == 'ml' else 'qr'}"
+        return (
+            f"{v / 1000:g} lt"
+            if u == "ml" and big
+            else f"{v / 1000:g} kq"
+            if big
+            else f"{v} {'ml' if u == 'ml' else 'qr'}"
+        )
     if style == "shirvan":
         return f"{v} {'ml' if u == 'ml' else 'gr'}"
     if style == "sumqayit":
-        return f"{v / 1000:g}l" if u == "ml" and big else f"{v / 1000:g}kq" if big else f"{v}{'ml' if u == 'ml' else 'q'}"
-    return f"{v / 1000:g} {'l' if u == 'ml' else 'kq'}" if big else f"{v} {'ml' if u == 'ml' else 'q'}"
+        return (
+            f"{v / 1000:g}l"
+            if u == "ml" and big
+            else f"{v / 1000:g}kq"
+            if big
+            else f"{v}{'ml' if u == 'ml' else 'q'}"
+        )
+    return (
+        f"{v / 1000:g} {'l' if u == 'ml' else 'kq'}" if big else f"{v} {'ml' if u == 'ml' else 'q'}"
+    )
 
 
-def render_name(p: Product, style: str, rng: random.Random, typo_rate: float) -> tuple[str, str | None]:
+def render_name(
+    p: Product, style: str, rng: random.Random, typo_rate: float
+) -> tuple[str, str | None]:
     """Name as printed by a retailer, and the brand field it would send (or None)."""
     variant = p.variant
     if variant.endswith("%"):
         num = variant[:-1]
-        variant = {"absheron": f"{num.replace('.', ',')}%", "shirvan": f"{num} %"}.get(style, variant)
+        variant = {"absheron": f"{num.replace('.', ',')}%", "shirvan": f"{num} %"}.get(
+            style, variant
+        )
     brand = p.brand
     size = _size(p, style)
     if style == "sumqayit":
@@ -127,7 +241,12 @@ def render_name(p: Product, style: str, rng: random.Random, typo_rate: float) ->
         if brand and rng.random() < 0.06:
             parts[2] = None  # brand left out: genuinely ambiguous
     elif style == "absheron":
-        parts = [brand, p.type_name.lower() if brand else p.type_name, variant.lower() if variant and not variant[0].isdigit() else variant, size]
+        parts = [
+            brand,
+            p.type_name.lower() if brand else p.type_name,
+            variant.lower() if variant and not variant[0].isdigit() else variant,
+            size,
+        ]
     else:
         parts = [brand, p.type_name, variant, size]
     name = " ".join(x for x in parts if x)
@@ -148,8 +267,15 @@ def _ending(price: float, style: str) -> int:
     return max(int(round(p / 5)) * 5, 5)
 
 
-def _regular_series(p: Product, retailer: str, cfg: dict, shared: bool, rng: np.random.Generator,
-                    days: int, start: date) -> np.ndarray:
+def _regular_series(
+    p: Product,
+    retailer: str,
+    cfg: dict,
+    shared: bool,
+    rng: np.random.Generator,
+    days: int,
+    start: date,
+) -> np.ndarray:
     drift = CATEGORY_MONTHLY_DRIFT[p.category]
     t = np.arange(days) - cfg["lag"]
     infl = (1 + drift) ** (np.maximum(t, 0) / 30.0)
@@ -164,8 +290,16 @@ def _regular_series(p: Product, retailer: str, cfg: dict, shared: bool, rng: np.
     return p.base_price * factor * infl * steps
 
 
-def _simulate_item(p: Product, retailer: str, cfg: dict, shared: bool, seed: int, days: int, start: date,
-                   clean: bool):
+def _simulate_item(
+    p: Product,
+    retailer: str,
+    cfg: dict,
+    shared: bool,
+    seed: int,
+    days: int,
+    start: date,
+    clean: bool,
+):
     rng = np.random.default_rng(seed)
     reg = _regular_series(p, retailer, cfg, shared, rng, days, start)
     price = np.zeros(days, dtype=np.int64)
@@ -179,7 +313,9 @@ def _simulate_item(p: Product, retailer: str, cfg: dict, shared: bool, seed: int
             depth = float(np.clip(rng.gamma(2.2, 0.11), 0.08, 0.55))
             inflated = rng.random() < 0.05
         if remaining > 0:
-            if inflated:  # fake promotion: a high "old" price, sale price roughly at the market level
+            if (
+                inflated
+            ):  # fake promotion: a high "old" price, sale price roughly at the market level
                 old[d] = _ending(regular * rng.uniform(1.35, 1.8), cfg["ending"])
                 price[d] = _ending(regular * rng.uniform(0.95, 1.0), cfg["ending"])
             else:
@@ -198,47 +334,115 @@ def _simulate_item(p: Product, retailer: str, cfg: dict, shared: bool, seed: int
 def _render(retailer: str, rows: list[Row]) -> tuple[str, bytes]:
     """Return (extension, bytes) for a day's rows in the retailer's native format."""
     if retailer == "baku_fresh":
-        lines = [json.dumps({
-            "sku": r.sku, "title": r.name, "brand": r.brand, "barcode": r.ean, "cat": r.category_raw,
-            "price": f"{r.price // 100}.{r.price % 100:02d}",
-            "was": None if r.old_price is None else f"{r.old_price // 100}.{r.old_price % 100:02d}",
-            "in_stock": r.available, "scraped_at": r.fetched_at.isoformat(timespec="seconds"),
-        }, ensure_ascii=False) for r in rows]
+        lines = [
+            json.dumps(
+                {
+                    "sku": r.sku,
+                    "title": r.name,
+                    "brand": r.brand,
+                    "barcode": r.ean,
+                    "cat": r.category_raw,
+                    "price": f"{r.price // 100}.{r.price % 100:02d}",
+                    "was": None
+                    if r.old_price is None
+                    else f"{r.old_price // 100}.{r.old_price % 100:02d}",
+                    "in_stock": r.available,
+                    "scraped_at": r.fetched_at.isoformat(timespec="seconds"),
+                },
+                ensure_ascii=False,
+            )
+            for r in rows
+        ]
         return "jsonl", ("\n".join(lines) + "\n").encode()
     if retailer == "caspianmart":
-        lines = [json.dumps({
-            "id": int(r.sku), "name": r.name, "ean": r.ean, "category_path": r.category_raw,
-            "current_price_qepik": r.price, "regular_price_qepik": r.old_price,
-            "stock": 12 if r.available else 0, "ts": int(r.fetched_at.timestamp()),
-        }, ensure_ascii=False) for r in rows]
+        lines = [
+            json.dumps(
+                {
+                    "id": int(r.sku),
+                    "name": r.name,
+                    "ean": r.ean,
+                    "category_path": r.category_raw,
+                    "current_price_qepik": r.price,
+                    "regular_price_qepik": r.old_price,
+                    "stock": 12 if r.available else 0,
+                    "ts": int(r.fetched_at.timestamp()),
+                },
+                ensure_ascii=False,
+            )
+            for r in rows
+        ]
         return "jsonl", ("\n".join(lines) + "\n").encode()
     if retailer == "absheron":
-        data = [{
-            "item_code": r.sku, "store_code": r.store_code, "description": r.name, "brand": r.brand,
-            "gtin": r.ean, "cat_id": r.category_raw,
-            "price_azn": r.price / 100,  # float on the wire: the silver layer must convert exactly
-            "old_price_azn": None if r.old_price is None else r.old_price / 100,
-            "promo_end": r.promo_until.isoformat() if r.promo_until else None,
-            "available": r.available, "updated": r.fetched_at.strftime("%Y-%m-%d %H:%M:%S"),
-        } for r in rows]
+        data = [
+            {
+                "item_code": r.sku,
+                "store_code": r.store_code,
+                "description": r.name,
+                "brand": r.brand,
+                "gtin": r.ean,
+                "cat_id": r.category_raw,
+                "price_azn": r.price
+                / 100,  # float on the wire: the silver layer must convert exactly
+                "old_price_azn": None if r.old_price is None else r.old_price / 100,
+                "promo_end": r.promo_until.isoformat() if r.promo_until else None,
+                "available": r.available,
+                "updated": r.fetched_at.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            for r in rows
+        ]
         return "json", json.dumps(data, ensure_ascii=False).encode()
     if retailer == "shirvan":
         buf = io.StringIO()
         w = csv.writer(buf, lineterminator="\n")
-        w.writerow(["code", "product_name", "brand", "barcode", "department", "price", "list_price",
-                    "available", "timestamp"])
+        w.writerow(
+            [
+                "code",
+                "product_name",
+                "brand",
+                "barcode",
+                "department",
+                "price",
+                "list_price",
+                "available",
+                "timestamp",
+            ]
+        )
         for r in rows:
-            w.writerow([r.sku, r.name, r.brand or "", r.ean or "", r.category_raw,
-                        f"{r.price // 100}.{r.price % 100:02d}",
-                        "" if r.old_price is None else f"{r.old_price // 100}.{r.old_price % 100:02d}",
-                        "Y" if r.available else "N", r.fetched_at.isoformat(timespec="seconds")])
+            w.writerow(
+                [
+                    r.sku,
+                    r.name,
+                    r.brand or "",
+                    r.ean or "",
+                    r.category_raw,
+                    f"{r.price // 100}.{r.price % 100:02d}",
+                    "" if r.old_price is None else f"{r.old_price // 100}.{r.old_price % 100:02d}",
+                    "Y" if r.available else "N",
+                    r.fetched_at.isoformat(timespec="seconds"),
+                ]
+            )
         return "csv", buf.getvalue().encode()
-    lines = [json.dumps({
-        "product": {"code": r.sku, "name": r.name, "brand": r.brand, "barcode": r.ean, "group": r.category_raw},
-        "offer": {"price": r.price / 100, "strike_price": None if r.old_price is None else r.old_price / 100,
-                  "in_stock": r.available},
-        "meta": {"fetched": r.fetched_at.isoformat(timespec="seconds")},
-    }, ensure_ascii=False) for r in rows]
+    lines = [
+        json.dumps(
+            {
+                "product": {
+                    "code": r.sku,
+                    "name": r.name,
+                    "brand": r.brand,
+                    "barcode": r.ean,
+                    "group": r.category_raw,
+                },
+                "offer": {
+                    "price": r.price / 100,
+                    "strike_price": None if r.old_price is None else r.old_price / 100,
+                    "in_stock": r.available,
+                },
+                "meta": {"fetched": r.fetched_at.isoformat(timespec="seconds")},
+            },
+            ensure_ascii=False,
+        )
+        for r in rows
+    ]
     return "jsonl", ("\n".join(lines) + "\n").encode()
 
 
@@ -259,6 +463,8 @@ def generate(cfg: GenConfig) -> dict:
     labels = _category_labels()
     days = cfg.days
     start = cfg.start_date
+    if start < HORIZON_START or cfg.end_date > HORIZON_START + timedelta(days=HORIZON_DAYS - 1):
+        raise ValueError(f"window {start}..{cfg.end_date} lies outside the simulation horizon")
     dates = [start + timedelta(days=i) for i in range(days)]
 
     # Stores of the zoned retailer. Zones are independent of store format on purpose.
@@ -266,8 +472,14 @@ def generate(cfg: GenConfig) -> dict:
     stores = []
     for i in range(8):
         zone = zones[i % 4]
-        stores.append({"store_code": f"S{i + 1:02d}", "name": f"Absheron Market {DISTRICTS[i]}",
-                       "format": rng.choice(STORE_FORMATS), "price_zone": zone})
+        stores.append(
+            {
+                "store_code": f"S{i + 1:02d}",
+                "name": f"Absheron Market {DISTRICTS[i]}",
+                "format": rng.choice(STORE_FORMATS),
+                "price_zone": zone,
+            }
+        )
 
     # Assortment per retailer.
     assort: dict[str, list[Product]] = {r: [] for r in RETAILERS}
@@ -287,13 +499,7 @@ def generate(cfg: GenConfig) -> dict:
         for p in plist:
             irng = random.Random(f"{cfg.seed}-{r}-{p.pid}")
             while True:  # SKUs are unique per retailer, as real catalogue ids are
-                sku = {
-                    "baku_fresh": lambda: f"BF-{irng.randrange(10**6):06d}",
-                    "caspianmart": lambda: str(irng.randrange(10**7, 10**8)),
-                    "absheron": lambda: f"A{irng.randrange(10**5):05d}",
-                    "shirvan": lambda: f"SH{irng.randrange(10**4):04d}-{p.pid % 97}",
-                    "sumqayit": lambda: f"{irng.randrange(16**8):08x}",
-                }[r]()
+                sku = _make_sku(r, irng, p.pid)
                 if (r, sku) not in used_skus:
                     used_skus.add((r, sku))
                     break
@@ -306,15 +512,35 @@ def generate(cfg: GenConfig) -> dict:
             category_raw = labels[(r, p.category)]
             if r == "caspianmart":
                 category_raw = f"{category_raw} > {p.type_name}"
-            items[(r, p.pid)] = dict(sku=sku, name=name, ean=ean, category_raw=category_raw, wrong_ean=False,
-                                     brand=brand if irng.random() < cfg_r["brand_rate"] else None)
+            items[(r, p.pid)] = dict(
+                sku=sku,
+                name=name,
+                ean=ean,
+                category_raw=category_raw,
+                wrong_ean=False,
+                brand=brand if irng.random() < cfg_r["brand_rate"] else None,
+            )
     # Seed a few barcode collisions (same barcode on two different products): data-entry errors.
     if not cfg.clean:
-        eligible = [(r, p) for (r, pid), it in items.items() for p in [catalog[pid - 1]]
-                    if it["ean"] and not p.weighed]
+        eligible = [
+            (r, p)
+            for (r, pid), it in items.items()
+            for p in [catalog[pid - 1]]
+            if it["ean"] and not p.weighed
+        ]
         for r, p in rng.sample(eligible, k=min(3, len(eligible))):
-            twin = next((q for q in catalog if q.category == p.category and q.pid != p.pid
-                         and q.ean and q.unit_type == p.unit_type and q.unit_value != p.unit_value), None)
+            twin = next(
+                (
+                    q
+                    for q in catalog
+                    if q.category == p.category
+                    and q.pid != p.pid
+                    and q.ean
+                    and q.unit_type == p.unit_type
+                    and q.unit_value != p.unit_value
+                ),
+                None,
+            )
             if twin:
                 items[(r, p.pid)]["ean"] = twin.ean
                 items[(r, p.pid)]["wrong_ean"] = True
@@ -326,7 +552,14 @@ def generate(cfg: GenConfig) -> dict:
     for (r, pid), _ in items.items():
         p = catalog[pid - 1]
         series[(r, pid)] = _simulate_item(
-            p, r, RETAILERS[r], shared[pid], zlib.crc32(f"{cfg.seed}-{r}-{pid}".encode()), days, start, cfg.clean
+            p,
+            r,
+            RETAILERS[r],
+            shared[pid],
+            zlib.crc32(f"{cfg.seed}-{r}-{pid}".encode()),
+            HORIZON_DAYS,
+            HORIZON_START,
+            cfg.clean,
         )
 
     # Ground truth.
@@ -335,7 +568,17 @@ def generate(cfg: GenConfig) -> dict:
         w = csv.writer(f)
         w.writerow(["pid", "canonical_name", "brand", "category", "unit_value", "unit_type", "ean"])
         for p in catalog:
-            w.writerow([p.pid, p.canonical_name, p.brand or "", p.category, p.unit_value or "", p.unit_type, p.ean or ""])
+            w.writerow(
+                [
+                    p.pid,
+                    p.canonical_name,
+                    p.brand or "",
+                    p.category,
+                    p.unit_value or "",
+                    p.unit_type,
+                    p.ean or "",
+                ]
+            )
     with open(cfg.truth_dir / "items.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["retailer_code", "sku", "pid", "wrong_ean"])
@@ -365,9 +608,10 @@ def generate(cfg: GenConfig) -> dict:
             for p in assort[r]:
                 it = items[(r, p.pid)]
                 price, old, promo_end, _ = series[(r, p.pid)]
-                price_d, old_d = int(price[di]), int(old[di]) or None
-                pe = promo_end[di]
-                promo_until = (start + timedelta(days=int(pe))) if pe is not None else None
+                hd = (day - HORIZON_START).days
+                price_d, old_d = int(price[hd]), int(old[hd]) or None
+                pe = promo_end[hd]
+                promo_until = (HORIZON_START + timedelta(days=int(pe))) if pe is not None else None
                 avail = drng.random() > 0.03
                 if r == "absheron":
                     for s in stores:
@@ -377,11 +621,39 @@ def generate(cfg: GenConfig) -> dict:
                         if not cfg.clean and drng.random() < 0.002:
                             sp += 10  # one store lags behind its zone
                             counters["zone_price_lag"] += 1
-                        rows.append(Row(it["sku"], p, it["name"], it["brand"], it["ean"], it["category_raw"],
-                                        sp, so, avail, promo_until, s["store_code"], fetched))
+                        rows.append(
+                            Row(
+                                it["sku"],
+                                p,
+                                it["name"],
+                                it["brand"],
+                                it["ean"],
+                                it["category_raw"],
+                                sp,
+                                so,
+                                avail,
+                                promo_until,
+                                s["store_code"],
+                                fetched,
+                            )
+                        )
                 else:
-                    rows.append(Row(it["sku"], p, it["name"], it["brand"], it["ean"], it["category_raw"],
-                                    price_d, old_d, avail, promo_until, None, fetched))
+                    rows.append(
+                        Row(
+                            it["sku"],
+                            p,
+                            it["name"],
+                            it["brand"],
+                            it["ean"],
+                            it["category_raw"],
+                            price_d,
+                            old_d,
+                            avail,
+                            promo_until,
+                            None,
+                            fetched,
+                        )
+                    )
             kind = incidents.get((r, day))
             if kind == "unit_mismatch":  # feed reports qepik where AZN is expected (x100)
                 for row in rows:
@@ -402,9 +674,17 @@ def generate(cfg: GenConfig) -> dict:
         if "absheron" in RETAILERS and di == 0 and lo <= day <= hi:
             (cfg.landing_dir / "absheron").mkdir(parents=True, exist_ok=True)
             (cfg.landing_dir / "absheron" / f"absheron_stores_{day.isoformat()}.json").write_text(
-                json.dumps(stores, ensure_ascii=False), encoding="utf-8")
-    manifest = {"seed": cfg.seed, "products": len(catalog), "items": len(items), "files": len(written),
-                "injected": dict(counters), "start": start.isoformat(), "end": cfg.end_date.isoformat()}
+                json.dumps(stores, ensure_ascii=False), encoding="utf-8"
+            )
+    manifest = {
+        "seed": cfg.seed,
+        "products": len(catalog),
+        "items": len(items),
+        "files": len(written),
+        "injected": dict(counters),
+        "start": start.isoformat(),
+        "end": cfg.end_date.isoformat(),
+    }
     (cfg.truth_dir / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     return manifest
 
@@ -412,7 +692,9 @@ def generate(cfg: GenConfig) -> dict:
 # Defect injection --------------------------------------------------------------------------------
 
 
-def _inject_defects(rows: list[Row], rng: random.Random, counters: Counter, retailer: str) -> list[Row]:
+def _inject_defects(
+    rows: list[Row], rng: random.Random, counters: Counter, retailer: str
+) -> list[Row]:
     """At most one defect per row, and only clean rows are duplicated, so every injected defect maps
     to exactly one rejected row in silver (the tests rely on that)."""
     out: list[Row] = []

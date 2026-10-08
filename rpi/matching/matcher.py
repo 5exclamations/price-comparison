@@ -116,7 +116,11 @@ def score_pair(item: Item, c: Canon) -> tuple[float, dict] | None:
     name = fuzz.token_sort_ratio(item.tokens, c.tokens) / 100.0
     category = 1.0 if item.category == c.category else 0.0
     score = round(0.60 * name + 0.25 * brand + 0.15 * category, 3)
-    return score, {"name_similarity": round(name, 3), "brand_score": brand, "category_match": bool(category)}
+    return score, {
+        "name_similarity": round(name, 3),
+        "brand_score": brand,
+        "category_match": bool(category),
+    }
 
 
 @dataclass
@@ -149,7 +153,8 @@ class Matcher:
         rows = self.conn.execute(
             """SELECT m.product_id, m.status, si.* FROM silver.product_match m
                JOIN silver.store_item si ON si.id = m.store_item_id
-               WHERE m.status <> 'pending_review' ORDER BY m.matched_at, si.id""").fetchall()
+               WHERE m.status <> 'pending_review' ORDER BY m.matched_at, si.id"""
+        ).fetchall()
         for r in rows:
             item = self._item(r)
             if r["product_id"] not in self.canon:
@@ -158,13 +163,31 @@ class Matcher:
 
     @staticmethod
     def _item(r: dict) -> Item:
-        return Item(r["id"], r["retailer_code"], r["name_raw"], r["brand"], r["unit_type"],
-                    None if r["unit_value"] is None else float(r["unit_value"]), r["pack"], r["ean"],
-                    r["ean_kind"], r["category"])
+        return Item(
+            r["id"],
+            r["retailer_code"],
+            r["name_raw"],
+            r["brand"],
+            r["unit_type"],
+            None if r["unit_value"] is None else float(r["unit_value"]),
+            r["pack"],
+            r["ean"],
+            r["ean_kind"],
+            r["category"],
+        )
 
     def _register(self, pid: int, item: Item) -> None:
-        self.canon[pid] = Canon(pid, item.category, item.brand, item.unit_type, item.unit_value, item.pack,
-                                item.tokens, item.fat, item.variants)
+        self.canon[pid] = Canon(
+            pid,
+            item.category,
+            item.brand,
+            item.unit_type,
+            item.unit_value,
+            item.pack,
+            item.tokens,
+            item.fat,
+            item.variants,
+        )
         self.blocks[_block_key(item.unit_type, item.unit_value, item.pack)].append(pid)
 
     def _attach(self, pid: int, item: Item) -> None:
@@ -185,8 +208,17 @@ class Matcher:
         pid = self.conn.execute(
             """INSERT INTO silver.product (name, brand, unit_value, unit_type, pack, category, ean, is_weighed)
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-            (display_name(item.name_raw), item.brand, item.unit_value, item.unit_type, item.pack, item.category,
-             item.ean if item.ean_kind == "global" else None, item.unit_type == "kg_bulk")).fetchone()["id"]
+            (
+                display_name(item.name_raw),
+                item.brand,
+                item.unit_value,
+                item.unit_type,
+                item.pack,
+                item.category,
+                item.ean if item.ean_kind == "global" else None,
+                item.unit_type == "kg_bulk",
+            ),
+        ).fetchone()["id"]
         self._register(pid, item)
         return pid
 
@@ -194,7 +226,8 @@ class Matcher:
         self.conn.execute(
             """INSERT INTO silver.product_match (store_item_id, product_id, method, confidence, status)
                VALUES (%s, %s, %s, %s, %s) ON CONFLICT (store_item_id) DO NOTHING""",
-            (item.id, pid, method, conf, status))
+            (item.id, pid, method, conf, status),
+        )
         self._attach(pid, item)
 
     def _fuzzy_candidates(self, item: Item) -> list[tuple[float, int, dict]]:
@@ -215,29 +248,44 @@ class Matcher:
             self._save(item, pid, "ean", 1.0, "auto")
             self.stats.ean += 1
             return "ean"
-        if item.key and item.key in self.by_key and item.retailer not in self.canon[self.by_key[item.key]].retailers:
+        if (
+            item.key
+            and item.key in self.by_key
+            and item.retailer not in self.canon[self.by_key[item.key]].retailers
+        ):
             self._save(item, self.by_key[item.key], "fingerprint", 0.95, "auto")
             self.stats.fingerprint += 1
             return "fingerprint"
-        if item.loose and item.loose in self.by_loose and item.retailer not in self.canon[self.by_loose[item.loose]].retailers:
+        if (
+            item.loose
+            and item.loose in self.by_loose
+            and item.retailer not in self.canon[self.by_loose[item.loose]].retailers
+        ):
             self._save(item, self.by_loose[item.loose], "loose_fingerprint", 0.92, "auto")
             self.stats.loose_fingerprint += 1
             return "loose_fingerprint"
 
         cands = self._fuzzy_candidates(item)
         best = cands[0] if cands else None
-        if best and best[0] >= s.match_auto_threshold and (len(cands) == 1 or best[0] - cands[1][0] >= 0.04):
+        if (
+            best
+            and best[0] >= s.match_auto_threshold
+            and (len(cands) == 1 or best[0] - cands[1][0] >= 0.04)
+        ):
             self._save(item, best[1], "fuzzy", best[0], "auto")
             self.stats.fuzzy_auto += 1
             return "fuzzy"
         pid = self._new_product(item)
         if best and best[0] >= s.match_review_threshold:
             self._save(item, pid, "review", best[0], "pending_review")
-            for score, cand_pid, feats in [c for c in cands if c[0] >= s.match_review_threshold][:3]:
+            for score, cand_pid, feats in [c for c in cands if c[0] >= s.match_review_threshold][
+                :3
+            ]:
                 self.conn.execute(
                     """INSERT INTO silver.match_review (store_item_id, candidate_product_id, score, features)
                        VALUES (%s, %s, %s, %s::jsonb) ON CONFLICT (store_item_id, candidate_product_id) DO NOTHING""",
-                    (item.id, cand_pid, score, json.dumps(feats)))
+                    (item.id, cand_pid, score, json.dumps(feats)),
+                )
             self.stats.review += 1
             return "review"
         self._save(item, pid, "new", 1.0, "singleton")
@@ -250,7 +298,8 @@ class Matcher:
         rows = self.conn.execute(
             """SELECT si.* FROM silver.store_item si LEFT JOIN silver.product_match m ON m.store_item_id = si.id
                WHERE m.store_item_id IS NULL
-               ORDER BY (si.ean_kind <> 'global'), si.retailer_code, si.id""").fetchall()
+               ORDER BY (si.ean_kind <> 'global'), si.retailer_code, si.id"""
+        ).fetchall()
         for r in rows:
             self.match_item(self._item(r))
         log.info("matching finished", extra={"items": len(rows), **vars(self.stats)})
@@ -261,38 +310,67 @@ class Matcher:
 
 
 def approve_review(conn: psycopg.Connection, review_id: int, decided_by: str = "reviewer") -> dict:
-    r = conn.execute("SELECT * FROM silver.match_review WHERE id = %s AND status = 'pending'", (review_id,)).fetchone()
+    r = conn.execute(
+        "SELECT * FROM silver.match_review WHERE id = %s AND status = 'pending'", (review_id,)
+    ).fetchone()
     if not r:
         raise LookupError(f"no pending review {review_id}")
-    old = conn.execute("SELECT product_id FROM silver.product_match WHERE store_item_id = %s", (r["store_item_id"],)).fetchone()
+    old = conn.execute(
+        "SELECT product_id FROM silver.product_match WHERE store_item_id = %s",
+        (r["store_item_id"],),
+    ).fetchone()
     conn.execute(
         """UPDATE silver.product_match SET product_id = %s, method = 'review', status = 'approved', matched_at = now()
-           WHERE store_item_id = %s""", (r["candidate_product_id"], r["store_item_id"]))
-    conn.execute("UPDATE silver.match_review SET status = 'approved', decided_at = now(), decided_by = %s WHERE id = %s",
-                 (decided_by, review_id))
+           WHERE store_item_id = %s""",
+        (r["candidate_product_id"], r["store_item_id"]),
+    )
+    conn.execute(
+        "UPDATE silver.match_review SET status = 'approved', decided_at = now(), decided_by = %s WHERE id = %s",
+        (decided_by, review_id),
+    )
     conn.execute(
         """UPDATE silver.match_review SET status = 'rejected', decided_at = now(), decided_by = %s
-           WHERE store_item_id = %s AND status = 'pending'""", (f"{decided_by}:superseded", r["store_item_id"]))
+           WHERE store_item_id = %s AND status = 'pending'""",
+        (f"{decided_by}:superseded", r["store_item_id"]),
+    )
     if old and old["product_id"] != r["candidate_product_id"]:
         conn.execute(
             """DELETE FROM silver.product p WHERE p.id = %s
-               AND NOT EXISTS (SELECT 1 FROM silver.product_match m WHERE m.product_id = p.id)""", (old["product_id"],))
-    return {"review_id": review_id, "store_item_id": r["store_item_id"], "product_id": r["candidate_product_id"]}
+               AND NOT EXISTS (SELECT 1 FROM silver.product_match m WHERE m.product_id = p.id)""",
+            (old["product_id"],),
+        )
+    return {
+        "review_id": review_id,
+        "store_item_id": r["store_item_id"],
+        "product_id": r["candidate_product_id"],
+    }
 
 
 def reject_review(conn: psycopg.Connection, review_id: int, decided_by: str = "reviewer") -> dict:
-    r = conn.execute("SELECT * FROM silver.match_review WHERE id = %s AND status = 'pending'", (review_id,)).fetchone()
+    r = conn.execute(
+        "SELECT * FROM silver.match_review WHERE id = %s AND status = 'pending'", (review_id,)
+    ).fetchone()
     if not r:
         raise LookupError(f"no pending review {review_id}")
-    conn.execute("UPDATE silver.match_review SET status = 'rejected', decided_at = now(), decided_by = %s WHERE id = %s",
-                 (decided_by, review_id))
+    conn.execute(
+        "UPDATE silver.match_review SET status = 'rejected', decided_at = now(), decided_by = %s WHERE id = %s",
+        (decided_by, review_id),
+    )
     left = conn.execute(
         "SELECT count(*) AS n FROM silver.match_review WHERE store_item_id = %s AND status = 'pending'",
-        (r["store_item_id"],)).fetchone()["n"]
+        (r["store_item_id"],),
+    ).fetchone()["n"]
     if left == 0:  # every candidate refused: this item is its own product
-        conn.execute("UPDATE silver.product_match SET status = 'singleton', method = 'new', confidence = 1 "
-                     "WHERE store_item_id = %s AND status = 'pending_review'", (r["store_item_id"],))
-    return {"review_id": review_id, "store_item_id": r["store_item_id"], "remaining_candidates": left}
+        conn.execute(
+            "UPDATE silver.product_match SET status = 'singleton', method = 'new', confidence = 1 "
+            "WHERE store_item_id = %s AND status = 'pending_review'",
+            (r["store_item_id"],),
+        )
+    return {
+        "review_id": review_id,
+        "store_item_id": r["store_item_id"],
+        "remaining_candidates": left,
+    }
 
 
 # ------------------------------------------------------------------------------ quarantine
@@ -305,7 +383,9 @@ def refresh_quarantine(conn: psycopg.Connection, *, max_price_ratio: float = 3.0
     ean_conflict    members carry different global barcodes
     price_spread    typical regular price differs by more than ``max_price_ratio`` between members
     """
-    conn.execute("UPDATE silver.product SET quarantined = false, quarantine_reason = NULL WHERE quarantined")
+    conn.execute(
+        "UPDATE silver.product SET quarantined = false, quarantine_reason = NULL WHERE quarantined"
+    )
     flagged: dict[str, int] = {}
     queries = {
         "size_conflict": """
@@ -330,6 +410,8 @@ def refresh_quarantine(conn: psycopg.Connection, *, max_price_ratio: float = 3.0
         if ids:
             conn.execute(
                 "UPDATE silver.product SET quarantined = true, quarantine_reason = %s "
-                "WHERE id = ANY(%s) AND NOT quarantined", (reason, ids))
+                "WHERE id = ANY(%s) AND NOT quarantined",
+                (reason, ids),
+            )
         flagged[reason] = len(ids)
     return flagged

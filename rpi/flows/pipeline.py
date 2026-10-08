@@ -34,19 +34,34 @@ def _ledger(run_id: str, step: str, fn, *args, retries_seen: int = 1, **kwargs) 
         stats = fn(*args, **kwargs)
     except Exception as exc:
         with connect() as conn:
-            ops.record_step(conn, run_id, step, "failed", attempts=retries_seen, error=f"{type(exc).__name__}: {exc}"[:800],
-                            started_at=started)
+            ops.record_step(
+                conn,
+                run_id,
+                step,
+                "failed",
+                attempts=retries_seen,
+                error=f"{type(exc).__name__}: {exc}"[:800],
+                started_at=started,
+            )
             conn.commit()
         raise
     with connect() as conn:
-        ops.record_step(conn, run_id, step, "succeeded", attempts=retries_seen, stats=stats, started_at=started)
+        ops.record_step(
+            conn, run_id, step, "succeeded", attempts=retries_seen, stats=stats, started_at=started
+        )
         conn.commit()
     return stats
 
 
 @task(name="ingest-bronze", retries=3, retry_delay_seconds=[1, 5, 15])
 def ingest_task(run_id: str, landing_dir: str | None, up_to: date | None) -> dict:
-    return _ledger(run_id, "ingest_bronze", steps.ingest_step, Path(landing_dir) if landing_dir else None, up_to=up_to)
+    return _ledger(
+        run_id,
+        "ingest_bronze",
+        steps.ingest_step,
+        Path(landing_dir) if landing_dir else None,
+        up_to=up_to,
+    )
 
 
 @task(name="build-silver", retries=2, retry_delay_seconds=[2, 10])
@@ -80,10 +95,27 @@ def _write_failure_report(run_id: str, error: str, trace: str) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     path = out / f"failure_{run_id}.json"
     with connect() as conn:
-        steps_done = conn.execute("SELECT step, status, error FROM ops.step_run WHERE run_id = %s ORDER BY id", (run_id,)).fetchall()
-        alerts = conn.execute("SELECT severity, source, title, detail FROM ops.alert WHERE run_id = %s ORDER BY id", (run_id,)).fetchall()
-    path.write_text(json.dumps({"run_id": run_id, "error": error, "traceback": trace, "steps": steps_done, "alerts": alerts},
-                               indent=1, default=str), encoding="utf-8")
+        steps_done = conn.execute(
+            "SELECT step, status, error FROM ops.step_run WHERE run_id = %s ORDER BY id", (run_id,)
+        ).fetchall()
+        alerts = conn.execute(
+            "SELECT severity, source, title, detail FROM ops.alert WHERE run_id = %s ORDER BY id",
+            (run_id,),
+        ).fetchall()
+    path.write_text(
+        json.dumps(
+            {
+                "run_id": run_id,
+                "error": error,
+                "traceback": trace,
+                "steps": steps_done,
+                "alerts": alerts,
+            },
+            indent=1,
+            default=str,
+        ),
+        encoding="utf-8",
+    )
     return path
 
 
@@ -124,7 +156,9 @@ def daily_pipeline(
         error = f"{type(exc).__name__}: {exc}"
         trace = traceback.format_exc()
         with connect() as conn:
-            ops.raise_alert(conn, run_id=run_id, severity="error", title="pipeline failed", detail=error[:800])
+            ops.raise_alert(
+                conn, run_id=run_id, severity="error", title="pipeline failed", detail=error[:800]
+            )
             conn.commit()
         report = _write_failure_report(run_id, error, trace)
         log.error("pipeline failed", extra={"error": error, "report": str(report)})
@@ -132,8 +166,13 @@ def daily_pipeline(
         raise
 
     with connect() as conn:
-        errors = conn.execute("SELECT count(*) AS n FROM ops.alert WHERE run_id = %s AND severity = 'error'", (run_id,)).fetchone()["n"]
-    degraded = errors > 0 or result["dq"]["failed_errors"] > 0 or result["silver"]["batches_failed"] > 0
+        errors = conn.execute(
+            "SELECT count(*) AS n FROM ops.alert WHERE run_id = %s AND severity = 'error'",
+            (run_id,),
+        ).fetchone()["n"]
+    degraded = (
+        errors > 0 or result["dq"]["failed_errors"] > 0 or result["silver"]["batches_failed"] > 0
+    )
     status = "degraded" if degraded else "succeeded"
     _finish(run_id, status, result)
     log.info("pipeline finished", extra={"status": status, "alerts": errors})

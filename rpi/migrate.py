@@ -35,7 +35,10 @@ def migrate(url: str | None = None) -> list[str]:
     with connect(url) as conn:
         conn.execute("SELECT pg_advisory_xact_lock(727001)")  # serialise concurrent starters
         conn.execute(_BOOTSTRAP)
-        done = {r["name"]: r["checksum"] for r in conn.execute("SELECT name, checksum FROM ops.schema_migration")}
+        done = {
+            r["name"]: r["checksum"]
+            for r in conn.execute("SELECT name, checksum FROM ops.schema_migration")
+        }
         for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
             sql = path.read_text(encoding="utf-8")
             checksum = hashlib.sha256(sql.encode()).hexdigest()
@@ -45,7 +48,8 @@ def migrate(url: str | None = None) -> list[str]:
                 continue
             conn.execute(sql)
             conn.execute(
-                "INSERT INTO ops.schema_migration (name, checksum) VALUES (%s, %s)", (path.name, checksum)
+                "INSERT INTO ops.schema_migration (name, checksum) VALUES (%s, %s)",
+                (path.name, checksum),
             )
             applied_now.append(path.name)
             log.info("migration applied", extra={"migration": path.name})

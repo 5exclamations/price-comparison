@@ -20,10 +20,14 @@ class Settings:
             "RPI_DATABASE_URL", "postgresql://rpi:rpi@localhost:5432/rpi"
         )
     )
-    landing_dir: Path = field(default_factory=lambda: _path("RPI_LANDING_DIR", ROOT / "data/landing"))
+    landing_dir: Path = field(
+        default_factory=lambda: _path("RPI_LANDING_DIR", ROOT / "data/landing")
+    )
     truth_dir: Path = field(default_factory=lambda: _path("RPI_TRUTH_DIR", ROOT / "data/truth"))
     dbt_dir: Path = field(default_factory=lambda: _path("RPI_DBT_DIR", ROOT / "warehouse"))
-    reports_dir: Path = field(default_factory=lambda: _path("RPI_REPORTS_DIR", ROOT / "data/reports"))
+    reports_dir: Path = field(
+        default_factory=lambda: _path("RPI_REPORTS_DIR", ROOT / "data/reports")
+    )
 
     # Matching thresholds (see docs/MATCHING.md for how they were chosen).
     match_auto_threshold: float = 0.88

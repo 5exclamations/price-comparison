@@ -68,36 +68,57 @@ def _int_qepik(value: object) -> int | None:
 
 def parse_baku_fresh(p: dict) -> Parsed:
     return Parsed(
-        sku=_s(p.get("sku")), name=_s(p.get("title")), brand=_s(p.get("brand")), ean=_s(p.get("barcode")),
-        category_raw=_s(p.get("cat")), price=to_qepik(p.get("price")), old_price=to_qepik(p.get("was")),
-        available=bool(p.get("in_stock", True)), observed_at=_ts(p.get("scraped_at")),
+        sku=_s(p.get("sku")),
+        name=_s(p.get("title")),
+        brand=_s(p.get("brand")),
+        ean=_s(p.get("barcode")),
+        category_raw=_s(p.get("cat")),
+        price=to_qepik(p.get("price")),
+        old_price=to_qepik(p.get("was")),
+        available=bool(p.get("in_stock", True)),
+        observed_at=_ts(p.get("scraped_at")),
     )
 
 
 def parse_caspianmart(p: dict) -> Parsed:
     return Parsed(
-        sku=_s(p.get("id")), name=_s(p.get("name")), ean=_s(p.get("ean")),
-        category_raw=_s(p.get("category_path")), price=_int_qepik(p.get("current_price_qepik")),
-        old_price=_int_qepik(p.get("regular_price_qepik")), available=(p.get("stock") or 0) > 0,
+        sku=_s(p.get("id")),
+        name=_s(p.get("name")),
+        ean=_s(p.get("ean")),
+        category_raw=_s(p.get("category_path")),
+        price=_int_qepik(p.get("current_price_qepik")),
+        old_price=_int_qepik(p.get("regular_price_qepik")),
+        available=(p.get("stock") or 0) > 0,
         observed_at=_ts(p.get("ts")),
     )
 
 
 def parse_absheron(p: dict) -> Parsed:
     return Parsed(
-        sku=_s(p.get("item_code")), name=_s(p.get("description")), brand=_s(p.get("brand")),
-        ean=_s(p.get("gtin")), category_raw=_s(p.get("cat_id")), price=to_qepik(p.get("price_azn")),
-        old_price=to_qepik(p.get("old_price_azn")), available=bool(p.get("available", True)),
-        store_code=_s(p.get("store_code")), observed_at=_ts(p.get("updated")),
+        sku=_s(p.get("item_code")),
+        name=_s(p.get("description")),
+        brand=_s(p.get("brand")),
+        ean=_s(p.get("gtin")),
+        category_raw=_s(p.get("cat_id")),
+        price=to_qepik(p.get("price_azn")),
+        old_price=to_qepik(p.get("old_price_azn")),
+        available=bool(p.get("available", True)),
+        store_code=_s(p.get("store_code")),
+        observed_at=_ts(p.get("updated")),
         promo_until=_date(p.get("promo_end")),
     )
 
 
 def parse_shirvan(p: dict) -> Parsed:
     return Parsed(
-        sku=_s(p.get("code")), name=_s(p.get("product_name")), brand=_s(p.get("brand")),
-        ean=_s(p.get("barcode")), category_raw=_s(p.get("department")), price=to_qepik(p.get("price")),
-        old_price=to_qepik(p.get("list_price")), available=str(p.get("available", "Y")).upper() == "Y",
+        sku=_s(p.get("code")),
+        name=_s(p.get("product_name")),
+        brand=_s(p.get("brand")),
+        ean=_s(p.get("barcode")),
+        category_raw=_s(p.get("department")),
+        price=to_qepik(p.get("price")),
+        old_price=to_qepik(p.get("list_price")),
+        available=str(p.get("available", "Y")).upper() == "Y",
         observed_at=_ts(p.get("timestamp")),
     )
 
@@ -105,9 +126,14 @@ def parse_shirvan(p: dict) -> Parsed:
 def parse_sumqayit(p: dict) -> Parsed:
     prod, offer, meta = p.get("product") or {}, p.get("offer") or {}, p.get("meta") or {}
     return Parsed(
-        sku=_s(prod.get("code")), name=_s(prod.get("name")), brand=_s(prod.get("brand")),
-        ean=_s(prod.get("barcode")), category_raw=_s(prod.get("group")), price=to_qepik(offer.get("price")),
-        old_price=to_qepik(offer.get("strike_price")), available=bool(offer.get("in_stock", True)),
+        sku=_s(prod.get("code")),
+        name=_s(prod.get("name")),
+        brand=_s(prod.get("brand")),
+        ean=_s(prod.get("barcode")),
+        category_raw=_s(prod.get("group")),
+        price=to_qepik(offer.get("price")),
+        old_price=to_qepik(offer.get("strike_price")),
+        available=bool(offer.get("in_stock", True)),
         observed_at=_ts(meta.get("fetched")),
     )
 
