@@ -625,8 +625,8 @@ def generate(cfg: GenConfig) -> dict:
                 if r == "absheron":
                     for s in stores:
                         f = ZONE_FACTOR[s["price_zone"]]
-                        sp = _ending(price_d * f, "fives")
-                        so = _ending(old_d * f, "fives") if old_d else None
+                        sp = price_d if f == 1.0 else _ending(price_d * f, "fives")
+                        so = (old_d if f == 1.0 else _ending(old_d * f, "fives")) if old_d else None
                         if not cfg.clean and drng.random() < 0.002:
                             sp += 10  # one store lags behind its zone
                             counters["zone_price_lag"] += 1
