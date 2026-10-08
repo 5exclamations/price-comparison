@@ -244,7 +244,8 @@ def alerts() -> pl.DataFrame:
 def lineage() -> pl.DataFrame:
     """Row counts layer by layer: where did the rows go?"""
     return query(
-        """SELECT 'bronze: raw records' AS stage, count(*)::bigint AS n FROM bronze.raw_record
+        """SELECT 'bronze: raw price records' AS stage, count(*)::bigint AS n FROM bronze.raw_record r
+           JOIN bronze.ingest_batch b USING (batch_id) WHERE b.kind = 'prices' AND b.status = 'silver_done'
            UNION ALL SELECT 'silver: rejected records', count(*) FROM silver.rejected_record
            UNION ALL SELECT 'silver: price observations', count(*) FROM silver.price_observation
            UNION ALL SELECT 'gold: daily prices (fact)', count(*) FROM gold.fct_price_daily"""

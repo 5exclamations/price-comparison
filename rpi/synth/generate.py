@@ -277,16 +277,18 @@ def _regular_series(
     start: date,
 ) -> np.ndarray:
     drift = CATEGORY_MONTHLY_DRIFT[p.category]
-    t = np.arange(days) - cfg["lag"]
+    t = np.arange(days) - (0 if shared else cfg["lag"])
     infl = (1 + drift) ** (np.maximum(t, 0) / 30.0)
     if p.category == "Fruit & Vegetables":  # seasonal swing
         doy = np.array([(start + timedelta(days=int(i))).timetuple().tm_yday for i in range(days)])
         infl = infl * (1 + 0.10 * np.sin(2 * math.pi * doy / 365.0 + 1.1))
-    factor = 1.0 if shared else 1.0 + cfg["bias"] + rng.normal(0, 0.035)
-    # Retailer-specific repricing events: random-walk steps of 2-8%.
+    factor = 1.0 if shared else 1.0 + cfg["bias"] + rng.normal(0, 0.02)
+    # Retailer-specific repricing events: a few small steps per year, kept within +-15% of the list
+    # price so that retailers stay comparable (real shelf prices are sticky, not a random walk).
     steps = np.ones(days)
-    for d in np.nonzero(rng.random(days) < 0.012)[0]:
-        steps[d:] *= 1 + rng.choice([-1, 1]) * rng.uniform(0.02, 0.08)
+    for d in np.nonzero(rng.random(days) < 0.004)[0]:
+        steps[d:] *= 1 + rng.choice([-1, 1]) * rng.uniform(0.02, 0.06)
+    steps = np.clip(steps, 0.85, 1.15)
     return p.base_price * factor * infl * steps
 
 
@@ -296,18 +298,24 @@ def _simulate_item(
     cfg: dict,
     shared: bool,
     seed: int,
+    shared_seed: int,
     days: int,
     start: date,
     clean: bool,
 ):
+    # Products on a "common list price" (about 60% of them, mirroring what the original research found)
+    # get the same regular-price path at every retailer: same stream, same ending convention, no lag.
+    # Promotions always come from the retailer's own stream.
     rng = np.random.default_rng(seed)
-    reg = _regular_series(p, retailer, cfg, shared, rng, days, start)
+    reg_rng = np.random.default_rng(shared_seed) if shared else rng
+    reg = _regular_series(p, retailer, cfg, shared, reg_rng, days, start)
+    ending = "nines" if shared else cfg["ending"]
     price = np.zeros(days, dtype=np.int64)
     old = np.zeros(days, dtype=np.int64)
     promo_end = [None] * days
     remaining, depth, inflated = 0, 0.0, False
     for d in range(days):
-        regular = _ending(reg[d], cfg["ending"])
+        regular = _ending(reg[d], ending)
         if remaining == 0 and rng.random() < cfg["promo"]:
             remaining = int(rng.integers(3, 15))
             depth = float(np.clip(rng.gamma(2.2, 0.11), 0.08, 0.55))
@@ -316,11 +324,11 @@ def _simulate_item(
             if (
                 inflated
             ):  # fake promotion: a high "old" price, sale price roughly at the market level
-                old[d] = _ending(regular * rng.uniform(1.35, 1.8), cfg["ending"])
-                price[d] = _ending(regular * rng.uniform(0.95, 1.0), cfg["ending"])
+                old[d] = _ending(regular * rng.uniform(1.35, 1.8), ending)
+                price[d] = _ending(regular * rng.uniform(0.95, 1.0), ending)
             else:
                 old[d] = regular
-                price[d] = _ending(regular * (1 - depth), cfg["ending"])
+                price[d] = _ending(regular * (1 - depth), ending)
             promo_end[d] = d + remaining - 1
             remaining -= 1
         else:
@@ -548,7 +556,7 @@ def generate(cfg: GenConfig) -> dict:
 
     # Price simulation (full window, regardless of which days get written).
     series: dict[tuple[str, int], tuple] = {}
-    shared = {p.pid: rng.random() < 0.55 for p in catalog}
+    shared = {p.pid: rng.random() < 0.60 for p in catalog}
     for (r, pid), _ in items.items():
         p = catalog[pid - 1]
         series[(r, pid)] = _simulate_item(
@@ -557,6 +565,7 @@ def generate(cfg: GenConfig) -> dict:
             RETAILERS[r],
             shared[pid],
             zlib.crc32(f"{cfg.seed}-{r}-{pid}".encode()),
+            zlib.crc32(f"{cfg.seed}-shared-{pid}".encode()),
             HORIZON_DAYS,
             HORIZON_START,
             cfg.clean,

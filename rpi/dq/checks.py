@@ -46,10 +46,10 @@ def _freshness(conn, as_of: date) -> list[Result]:
                 "silver",
                 "freshness_days",
                 "error" if lag > 3 else "warn",
-                lag <= 1,
+                lag <= 0,
                 r["code"],
                 float(lag),
-                "<= 1 day",
+                "0 days (a file for the as-of date)",
                 f"last observation {r['last']}, as of {as_of}",
             )
         )
