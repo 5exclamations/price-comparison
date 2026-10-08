@@ -40,6 +40,8 @@ def configure(level: str = "INFO") -> None:
     handler._rpi = True  # type: ignore[attr-defined]
     root.addHandler(handler)
     root.setLevel(level)
+    for noisy in ("httpx", "httpcore", "prefect.server", "alembic", "asyncio"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
 def bind(**values) -> None:

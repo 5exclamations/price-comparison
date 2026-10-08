@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Retail Price Intelligence Platform: bronze/silver/gold price analytics for supermarket data"
 requires-python = ">=3.11"
 dependencies = [
-    "psycopg[binary]>=3.1",
+    "psycopg[binary,pool]>=3.1",
     "polars>=1.0",
     "numpy>=1.26",
     "rapidfuzz>=3.6",
