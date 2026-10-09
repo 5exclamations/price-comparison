@@ -46,3 +46,15 @@ pipeline/state/
 # одна из поломок, ради которых проверки написаны.
 pipeline/qiymet.db-wal
 pipeline/qiymet.db-shm
+
+# --- Retail Price Intelligence Platform (rpi) ----------------------------------
+# Generated, reproducible from `make seed`; never commit synthetic or real feeds.
+data/landing/
+data/truth/
+data/reports/
+data/screenshots_raw/
+warehouse/target/
+warehouse/logs/
+warehouse/dbt_packages/
+*.egg-info/
+.prefect/
