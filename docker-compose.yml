@@ -11,6 +11,8 @@ x-rpi: &rpi
   environment:
     RPI_DATABASE_URL: postgresql://rpi:rpi@postgres:5432/rpi
     RPI_PG_HOST: postgres
+    # Empty by default: the API's write endpoint stays disabled until you set a key (>= 16 characters).
+    RPI_API_KEY: ${RPI_API_KEY:-}
   volumes:
     - rpi-data:/app/data
 

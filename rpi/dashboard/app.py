@@ -7,12 +7,16 @@ and a zoned retailer is never priced until a zone is chosen (sidebar).
 
 from __future__ import annotations
 
+import os
+
 import plotly.express as px
 import polars as pl
 import streamlit as st
 
 from rpi.dashboard import data as d
 from rpi.matching.matcher import approve_review, reject_review
+
+REVIEW_WRITES = os.environ.get("RPI_DASHBOARD_ALLOW_REVIEW") == "1"
 
 st.set_page_config(page_title="Retail Price Intelligence", page_icon="🛒", layout="wide")
 
@@ -606,6 +610,11 @@ def page_review():
     st.caption(
         "Uncertain matches wait here. Approving merges the item into the candidate product; run the pipeline afterwards to refresh gold."
     )
+    if not REVIEW_WRITES:
+        st.info(
+            "Read-only: set RPI_DASHBOARD_ALLOW_REVIEW=1 on a trusted, local dashboard to enable the buttons. "
+            "Anyone who can reach an enabled dashboard can change matches."
+        )
     q = d.review_queue()
     left, right = st.columns([2, 1])
     with right:
@@ -624,7 +633,7 @@ def page_review():
                     f"**{r['retailer_code']}**: `{r['item_name']}`  \nmay be the same as  \n**{r['candidate_name']}**  \nscore {r['score']:.3f} · name similarity {r['name_similarity']} · brand {r['brand_score']}"
                 )
                 a, b, _ = st.columns([1, 1, 4])
-                if a.button("Approve", key=f"ok{r['id']}"):
+                if a.button("Approve", key=f"ok{r['id']}", disabled=not REVIEW_WRITES):
                     import psycopg
 
                     from rpi.config import get_settings
@@ -635,7 +644,7 @@ def page_review():
                         approve_review(conn, r["id"], "dashboard")
                         conn.commit()
                     st.rerun()
-                if b.button("Reject", key=f"no{r['id']}"):
+                if b.button("Reject", key=f"no{r['id']}", disabled=not REVIEW_WRITES):
                     import psycopg
 
                     from rpi.config import get_settings

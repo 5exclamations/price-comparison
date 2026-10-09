@@ -15,6 +15,17 @@ Nothing in the generator or the pipeline contacts a retailer or any third-party 
 
 ## The earlier prototype in this repository
 
-The repository began as **qiymət**, a Flutter and FastAPI app with a SQLite prototype pipeline (`pipeline/`, `api/`, `app/`, `db/`, `checks/`, `notify/`, `deploy/`). It is kept for history and is not used by the platform except for two text parsers (`pipeline/units.py`, `pipeline/fingerprint.py`) that `rpi/legacy.py` loads. Docker images for the platform copy only those two files.
+The repository began as **qiymət**, a Flutter and FastAPI app with a SQLite prototype pipeline (`pipeline/`, `api/`, `app/`, `db/`, `checks/`, `notify/`, `deploy/`). The platform uses two of its text parsers (`pipeline/units.py`, `pipeline/fingerprint.py`, loaded by `rpi/legacy.py`) and nothing else; the Docker image copies only those two files.
 
-That prototype's own documentation (`pipeline/README.md`) states that its data collection scraped retailer and delivery-platform storefronts, that this breaches their terms of use, and that production use needs retailer-supplied feeds. The repository also contains a snapshot database and CSV/HTML exports derived from that collection. Before making the repository public, review whether those artifacts may be published and remove them (including from git history) if not. The platform does not depend on them.
+That prototype was fed by scraping retailer and delivery-platform storefronts. Its own documentation (`pipeline/README.md`) says this breaches their terms of use and that production use needs retailer-supplied feeds. Files in this repository that derive from that collection:
+
+| Path | What it is |
+|---|---|
+| `pipeline/qiymet.db` | SQLite snapshot: about 57,000 listings, 36,000 products, prices and match audit for six real chains |
+| `pipeline/raw/bazarstore_ean.json` | 19,410 product-id to barcode pairs from one retailer |
+| `pipeline/raw/wolt_all.json` | small sample of delivery-platform items |
+| `demo.html` | demo page with embedded real prices |
+| `match_queue.csv`, `promo_honesty.csv`, `pipeline/promo_honesty.csv` | exports of that data |
+| `pipeline/wolt.py`, `pipeline/pipeline.py`, `pipeline/run.py`, `deploy/scripts/run-crawl.sh` | the collection code |
+
+They must not be published. See [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) for the full audit and the public-release plan.

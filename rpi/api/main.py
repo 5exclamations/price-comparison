@@ -10,6 +10,7 @@ Conventions
 
 from __future__ import annotations
 
+import hmac
 import os
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
@@ -68,10 +69,20 @@ Conn = Annotated[Connection, Depends(get_conn)]
 Limit = Annotated[int, Query(ge=1, le=200)]
 
 
+MIN_API_KEY_LENGTH = 16
+
+
 def require_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
-    expected = os.environ.get("RPI_API_KEY")
-    if expected and x_api_key != expected:
-        raise HTTPException(401, "missing or wrong X-API-Key")
+    """Write endpoints fail closed.
+
+    With no ``RPI_API_KEY`` configured (or a short one) writes are disabled outright, so a deployment
+    that forgot to set a key is read-only instead of open. Comparison is constant time.
+    """
+    expected = os.environ.get("RPI_API_KEY", "")
+    if len(expected) < MIN_API_KEY_LENGTH:
+        raise HTTPException(503, f"write endpoints are disabled: set RPI_API_KEY (at least {MIN_API_KEY_LENGTH} characters)")
+    if not x_api_key or not hmac.compare_digest(x_api_key.encode(), expected.encode()):
+        raise HTTPException(401, "missing or wrong X-API-Key", headers={"WWW-Authenticate": "ApiKey"})
 
 
 # ------------------------------------------------------------------------------------ helpers
@@ -130,7 +141,6 @@ class PriceRow(BaseModel):
 
 class ReviewDecision(BaseModel):
     decision: Literal["approve", "reject"]
-    decided_by: str = "api"
 
 
 class BasketRequest(BaseModel):
@@ -411,7 +421,7 @@ def review_queue(conn: Conn, limit: Limit = 25) -> dict:
 def decide_review(review_id: int, body: ReviewDecision, conn: Conn) -> dict:
     """Approve or reject a candidate match. Run the pipeline afterwards to refresh gold."""
     try:
-        out = (approve_review if body.decision == "approve" else reject_review)(conn, review_id, body.decided_by)
+        out = (approve_review if body.decision == "approve" else reject_review)(conn, review_id, "api")
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
     conn.commit()

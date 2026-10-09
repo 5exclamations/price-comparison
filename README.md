@@ -2,7 +2,7 @@
 
 A data platform that answers the questions a Baku shopper, a category manager and a pricing analyst all ask: *where is this cheapest today, which discounts are real, and how fast are prices rising?*
 
-It ingests supermarket price feeds that do not share an identifier scheme, a currency format or a notion of "price", cleans them, matches the same product across chains, and publishes analytics-ready tables, a REST API and a dashboard. Everything runs locally on **synthetic data**: no retailer access, scraping or restricted data is needed or included.
+It ingests supermarket price feeds that do not share an identifier scheme, a currency format or a notion of "price", cleans them, matches the same product across chains, and publishes analytics-ready tables, a REST API and a dashboard. The platform itself runs entirely on **synthetic data**: it needs no retailer access and contains no scraping code. (This repository also holds an earlier prototype whose files include data collected from real retailers; see [Data sources and licensing](#data-sources-and-licensing) and [`docs/SECURITY_AUDIT.md`](docs/SECURITY_AUDIT.md).)
 
 The project grew out of **qiymət**, a Flutter + FastAPI price-comparison app for Azerbaijani supermarkets (the original app, API and prototype pipeline are still in this repository, untouched; the original Russian README is in [`docs/legacy/README.ru.md`](docs/legacy/README.ru.md)). The platform re-implements the lessons of that prototype as a layered, tested data pipeline.
 
@@ -391,7 +391,7 @@ sudo -u postgres psql -c "CREATE ROLE rpi LOGIN SUPERUSER PASSWORD 'rpi'" -c "CR
 
 Useful targets (`make help` lists all): `make test`, `make lint`, `make seed`, `make run`, `make incident`, `make reset`, `make dbt-docs`, `make screenshots`.
 
-Configuration is by environment variable: `RPI_DATABASE_URL`, `RPI_LANDING_DIR`, `RPI_TRUTH_DIR`, `RPI_REPORTS_DIR`, and optionally `RPI_API_KEY` to protect the review-decision endpoint.
+Configuration is by environment variable: `RPI_DATABASE_URL`, `RPI_LANDING_DIR`, `RPI_TRUTH_DIR`, `RPI_REPORTS_DIR`, and `RPI_API_KEY` (at least 16 characters). **Without `RPI_API_KEY` the API's one write endpoint is disabled** (HTTP 503), and the dashboard's review buttons stay disabled unless `RPI_DASHBOARD_ALLOW_REVIEW=1`.
 
 ## Demo scenarios
 
@@ -418,7 +418,7 @@ Expected: the batch is rejected (`median price 389.00 AZN outside 0.30-50.00 AZN
 ```bash
 python -m rpi.cli review list --limit 3
 #   17  0.873  sumqayit  'Şokolad Südlü 200q' -> 'Ceyran Şokolad Südlü 200 Qr'
-python -m rpi.cli review approve 17     # or POST /v1/matching/review/17 {"decision": "approve"}
+python -m rpi.cli review approve 17     # or: curl -X POST -H "X-API-Key: $RPI_API_KEY" -d '{"decision": "approve"}' localhost:8000/v1/matching/review/17
 python -m rpi.cli run --as-of 2026-09-30   # gold relabels the SKU's whole history
 ```
 
@@ -494,14 +494,15 @@ Coverage by area: text and units 17, migrations 2, generator 8, bronze 4, silver
 * **Price index is fixed-base, matched-model, equally weighted.** It is inflation-like, not a CPI: no expenditure weights, no quality adjustment, no basket rotation. [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) states formulas and limits.
 * **Matching thresholds were set on synthetic data.** They are configuration (`match_auto_threshold`, `match_review_threshold`) and the review queue produces the labelled pairs needed to recalibrate on real data.
 * **The dashboard reads the database directly.** Fewer moving parts than going through the API; the API stays the contract for other consumers.
-* **No authentication** except an optional API key on the single write endpoint. Anything exposed beyond localhost needs a gateway.
+* **Reads are open, the single write endpoint fails closed.** `POST /v1/matching/review/{id}` returns 503 until `RPI_API_KEY` is set and 401 without the exact key (constant-time comparison); the reviewer recorded is always `api`, never client-supplied. There are no user accounts, rate limits or TLS in the app itself: anything exposed beyond localhost needs a gateway.
 * **Prefect runs in-process.** No server or worker pool to operate for a single pipeline; moving to a deployment with schedules is a change in how the flow is launched, not in the flow.
 
 ## Data sources and licensing
 
 * The platform runs on **synthetic data only**. Retailer names, brands, products and prices are invented; none of it describes a real company's pricing. Feed formats imitate the *kinds* of variation real feeds have (field names, price encodings, category labels in Azerbaijani, Russian and English).
 * **No scraping code was added** and none is needed. Plugging in a real retailer means obtaining its feed under an agreement, writing one parser in `rpi/silver/parsers.py` and registering the retailer in `rpi/reference/retailers.csv`.
-* The repository also contains the earlier **qiymət** prototype (`pipeline/`, `api/`, `app/`, `db/`, `checks/`, `notify/`). It is not used by, or needed for, the platform apart from two text parsers (`pipeline/units.py`, `pipeline/fingerprint.py`) that `rpi/legacy.py` reuses. Its own documentation describes how its data was collected; review that material and the data snapshot it ships before making any repository public. See [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md).
+* **This repository is not free of restricted data.** The earlier **qiymət** prototype (`pipeline/`, `api/`, `app/`, `db/`, `checks/`, `notify/`, `deploy/`) is still here. It includes `pipeline/qiymet.db` (about 57,000 retailer listings from six real chains), `pipeline/raw/*.json`, `demo.html`, two CSV exports of promotion analysis and the scrapers that produced them. Its own README says the collection breached the sources' terms of use. The audit in [`docs/SECURITY_AUDIT.md`](docs/SECURITY_AUDIT.md) lists every file and the recommended handling. **Do not make this repository public as it is**; the platform is published separately, without that history.
+* The platform uses nothing from that prototype except two text parsers (`pipeline/units.py`, `pipeline/fingerprint.py`) loaded by `rpi/legacy.py`.
 * Receipt data from the fiscal portal mentioned in the prototype's notes would be a legitimate future source if collected with the user's consent and anonymised; it is not implemented here.
 
 ## Repository layout

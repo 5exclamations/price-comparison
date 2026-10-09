@@ -205,33 +205,62 @@ def test_basket_input_is_validated(client):
     )
 
 
-def test_review_queue_is_readable_and_decisions_need_the_key_when_one_is_configured(
-    client, monkeypatch
-):
+KEY = "correct-horse-battery-staple"
+
+
+def test_review_queue_is_readable(client):
     q = client.get("/v1/matching/review-queue", params={"limit": 3}).json()
     assert q["pending_total"] > 0 and 0.7 <= q["items"][0]["score"] < 1
-    monkeypatch.setenv("RPI_API_KEY", "secret")
-    assert client.post("/v1/matching/review/1", json={"decision": "approve"}).status_code == 401
-    assert (
-        client.post(
-            "/v1/matching/review/1", json={"decision": "approve"}, headers={"X-API-Key": "wrong"}
-        ).status_code
-        == 401
+
+
+def test_writes_are_disabled_when_no_key_is_configured(client, monkeypatch):
+    """Secure by default: an unconfigured deployment is read-only, not open."""
+    monkeypatch.delenv("RPI_API_KEY", raising=False)
+    r = client.post(
+        "/v1/matching/review/1", json={"decision": "approve"}, headers={"X-API-Key": KEY}
     )
+    assert r.status_code == 503 and "RPI_API_KEY" in r.json()["detail"]
+    monkeypatch.setenv("RPI_API_KEY", "short")  # too short counts as unconfigured
     assert (
         client.post(
-            "/v1/matching/review/999999",
-            json={"decision": "approve"},
-            headers={"X-API-Key": "secret"},
+            "/v1/matching/review/1", json={"decision": "approve"}, headers={"X-API-Key": "short"}
         ).status_code
+        == 503
+    )
+
+
+def test_writes_require_the_exact_key(client, monkeypatch):
+    monkeypatch.setenv("RPI_API_KEY", KEY)
+    body = {"decision": "approve"}
+    assert client.post("/v1/matching/review/1", json=body).status_code == 401
+    r = client.post("/v1/matching/review/1", json=body, headers={"X-API-Key": "wrong-" + KEY})
+    assert r.status_code == 401 and r.headers["www-authenticate"] == "ApiKey"
+    assert (
+        client.post("/v1/matching/review/999999", json=body, headers={"X-API-Key": KEY}).status_code
         == 404
     )
     assert (
         client.post(
-            "/v1/matching/review/1", json={"decision": "maybe"}, headers={"X-API-Key": "secret"}
+            "/v1/matching/review/1", json={"decision": "maybe"}, headers={"X-API-Key": KEY}
         ).status_code
         == 422
     )
+
+
+def test_reads_never_need_a_key(client, monkeypatch):
+    monkeypatch.delenv("RPI_API_KEY", raising=False)
+    assert client.get("/v1/meta").status_code == 200
+
+
+def test_the_decider_cannot_be_spoofed_by_the_client(client, monkeypatch):
+    monkeypatch.setenv("RPI_API_KEY", KEY)
+    # An extra field is ignored; the decider recorded server-side is always 'api'.
+    r = client.post(
+        "/v1/matching/review/999999",
+        json={"decision": "approve", "decided_by": "admin"},
+        headers={"X-API-Key": KEY},
+    )
+    assert r.status_code == 404
 
 
 def test_quality_endpoints_report_the_last_run(client):
